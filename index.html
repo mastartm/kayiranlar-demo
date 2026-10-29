@@ -207,15 +207,15 @@ V.dash=()=>{
   const lastMov=[...S.mov].reverse().slice(0,7);
   return `<h1>Ana Sayfa</h1><div class="sub">Bugün: ${fd(today)}</div>
   <div class="cards">
-   <div class="card"><div class="l">Ürün çeşidi</div><div class="v">${S.products.length}</div></div>
-   <div class="card"><div class="l">Toplam stok adedi</div><div class="v">${adet}</div></div>
-   <div class="card"><div class="l">Kritik stok</div><div class="v ${low.length?"neg":""}">${low.length}</div></div>
-   <div class="card"><div class="l">Bugünkü satış (iade düşülmüş)</div><div class="v">${money(ts)}</div></div>
-   <div class="card"><div class="l">Açık cari (alacak)</div><div class="v">${money(open)}</div></div>
+   <div class="card"><div class="l">Ürün Çeşidi</div><div class="v">${S.products.length}</div></div>
+   <div class="card"><div class="l">Toplam Stok Adedi</div><div class="v">${adet}</div></div>
+   <div class="card"><div class="l">Kritik Stok</div><div class="v ${low.length?"neg":""}">${low.length}</div></div>
+   <div class="card"><div class="l">Bugünkü Satış (İade Düşülmüş)</div><div class="v">${money(ts)}</div></div>
+   <div class="card"><div class="l">Açık Cari (Alacak)</div><div class="v">${money(open)}</div></div>
   </div>
   <div class="cols">
-   <div class="panel"><h2>Kritik stok uyarısı</h2>${low.length?`<div class="tw"><table><tr><th>Ürün</th><th>Raf</th><th class="n">Stok</th><th class="n">Alt sınır</th></tr>${low.map(p=>`<tr class="click" onclick="detail(${p.id})"><td>${esc(p.ad)}<div class="muted">${esc(p.kod)}</div></td><td>${esc(p.raf)}</td><td class="n neg">${stok(p.id)}</td><td class="n">${p.min}</td></tr>`).join("")}</table></div>`:'<div class="empty">Kritik stokta ürün yok</div>'}</div>
-   <div class="panel"><h2>Son stok hareketleri</h2><div class="tw"><table><tr><th>Tarih</th><th>Ürün</th><th class="n">Adet</th></tr>${lastMov.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(prod(m.u).ad)}<div class="muted">${esc(m.tip)} · ${esc(m.kim)}</div></td><td class="n ${m.adet>0?"pos":"neg"}">${m.adet>0?"+":""}${m.adet}</td></tr>`).join("")}</table></div></div>
+   <div class="panel"><h2>Kritik Stok Uyarısı</h2>${low.length?`<div class="tw"><table><tr><th>Ürün</th><th>Raf</th><th class="n">Stok</th><th class="n">Alt Sınır</th></tr>${low.map(p=>`<tr class="click" onclick="detail(${p.id})"><td>${esc(p.ad)}<div class="muted">${esc(p.kod)}</div></td><td>${esc(p.raf)}</td><td class="n neg">${stok(p.id)}</td><td class="n">${p.min}</td></tr>`).join("")}</table></div>`:'<div class="empty">Kritik stokta ürün yok</div>'}</div>
+   <div class="panel"><h2>Son Stok Hareketleri</h2><div class="tw"><table><tr><th>Tarih</th><th>Ürün</th><th class="n">Adet</th></tr>${lastMov.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(prod(m.u).ad)}<div class="muted">${esc(m.tip)} · ${esc(m.kim)}</div></td><td class="n ${m.adet>0?"pos":"neg"}">${m.adet>0?"+":""}${m.adet}</td></tr>`).join("")}</table></div></div>
   </div>`;
 };
 
@@ -227,7 +227,7 @@ V.products=()=>{
    <input class="grow" id="pq" placeholder="Ara: egea fren, MT-0301, Bosch, A-01..." value="${esc(window._pq||"")}" oninput="window._pq=this.value;keepFocus('products','pq')">
    <select onchange="window._pc=this.value;render()"><option value="">Tüm kategoriler</option>${CATS.map(c=>`<option ${cat===c?"selected":""}>${c}</option>`).join("")}</select>
    <label><input type="checkbox" ${low?"checked":""} onchange="window._pl=this.checked;render()"> Sadece kritik</label>
-   <button class="btn" onclick="productForm()">+ Yeni ürün</button></div>
+   <button class="btn" onclick="productForm()">+ Yeni Ürün</button></div>
   <div class="tw"><table><tr><th>Kod</th><th>Ürün</th><th>Kategori</th><th>Raf</th><th class="n">Fiyat</th><th class="n">Stok</th></tr>
   ${list.map(p=>{const s=stok(p.id);return`<tr class="click" onclick="detail(${p.id})"><td>${esc(p.kod)}</td><td>${esc(p.ad)}<div class="muted">${esc(p.marka)}</div></td><td>${esc(p.kat)}</td><td>${esc(p.raf)}</td><td class="n">${money(p.fiyat)}</td><td class="n">${s<=p.min?`<span class="b bad">${s}</span>`:`<b>${s}</b>`}</td></tr>`}).join("")||'<tr><td colspan="6" class="empty">Sonuç yok</td></tr>'}
   </table></div><div class="muted" style="margin-top:8px">${list.length} ürün gösteriliyor</div></div>`;
@@ -241,34 +241,34 @@ V.sale=()=>{
   const names=customers().map(c=>c.ad);
   return `<h1>Yeni Satış Fişi</h1><div class="sub">Kayıt edilince ürünler stoktan otomatik düşer ve cariye işlenir.</div>
   <div class="cols s2"><div>
-   <div class="panel"><h2>1. Müşteri ve tarih</h2><div class="grid2">
+   <div class="panel"><h2>1. Müşteri ve Tarih</h2><div class="grid2">
     <label>Kime satıldı (yazın ya da listeden seçin; yeni isim cari hesabı otomatik açar)<input id="sm" list="mlist" value="${esc(saleDraft.musteri)}" oninput="saleDraft.musteri=this.value" placeholder="Ad Soyad / Firma"></label>
-    <label>Fiş tarihi<input type="date" id="st" value="${saleDraft.tarih}" onchange="saleDraft.tarih=this.value"></label></div>
+    <label>Fiş Tarihi<input type="date" id="st" value="${saleDraft.tarih}" onchange="saleDraft.tarih=this.value"></label></div>
     <datalist id="mlist">${names.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div>
-   <div class="panel"><h2>2. Ürün ekle</h2>
+   <div class="panel"><h2>2. Ürün Ekle</h2>
     <input style="width:100%;margin-bottom:10px" id="hq" placeholder="Ürün adı, kodu ya da markası yazın..." value="${esc(hitQ)}" oninput="hitQ=this.value;keepFocus('sale','hq')">
     ${hits.length?`<div class="hits">${hits.map(p=>`<div class="hit" onclick="addCart(${p.id})"><span>${esc(p.ad)}<div class="muted">${esc(p.kod)} · Raf ${esc(p.raf)}</div></span><span class="right">${money(p.fiyat)}<div class="muted">Stok ${stok(p.id)}</div></span></div>`).join("")}</div>`:q?'<div class="muted">Eşleşen ürün yok</div>':""}</div></div>
-  <div><div class="panel"><h2>3. Fiş kalemleri</h2>
-   ${cart.length?`<div class="tw"><table><tr><th>Ürün</th><th class="n">Adet</th><th class="n">Birim fiyat</th><th>İndirim</th><th class="n">Tutar</th><th></th></tr>${cart.map((l,i)=>`<tr><td>${esc(prod(l.u).ad)}<div class="muted">Stok ${stok(l.u)}</div></td><td class="n"><input type="number" min="1" style="width:60px" value="${l.adet}" onchange="setCart(${i},'adet',this.value)"></td><td class="n"><input type="number" min="0" step="0.01" style="width:84px" value="${l.fiyat}" onchange="setCart(${i},'fiyat',this.value)"></td><td>${indSel(l.ind,v=>`setCart(${i},'ind',${v})`,l,`cart[${i}]`)}</td><td class="n">${money(lineNet(l))}</td><td><button class="btn d sm" onclick="cart.splice(${i},1);render()">×</button></td></tr>`).join("")}</table></div>`:'<div class="empty">Henüz ürün eklenmedi</div>'}
+  <div><div class="panel"><h2>3. Fiş Kalemleri</h2>
+   ${cart.length?`<div class="tw"><table><tr><th>Ürün</th><th class="n">Adet</th><th class="n">Birim Fiyat</th><th>İndirim</th><th class="n">Tutar</th><th></th></tr>${cart.map((l,i)=>`<tr><td>${esc(prod(l.u).ad)}<div class="muted">Stok ${stok(l.u)}</div></td><td class="n"><input type="number" min="1" style="width:60px" value="${l.adet}" onchange="setCart(${i},'adet',this.value)"></td><td class="n"><input type="number" min="0" step="0.01" style="width:84px" value="${l.fiyat}" onchange="setCart(${i},'fiyat',this.value)"></td><td>${indSel(l.ind,v=>`setCart(${i},'ind',${v})`,l,`cart[${i}]`)}</td><td class="n">${money(lineNet(l))}</td><td><button class="btn d sm" onclick="cart.splice(${i},1);render()">×</button></td></tr>`).join("")}</table></div>`:'<div class="empty">Henüz ürün eklenmedi</div>'}
    <div class="tot" style="margin-top:8px"><span>Ara toplam</span><span>${money(ara)}</span></div>
    <div class="tot"><span>Genel indirim ${indSel(saleDraft.genelInd,v=>`saleDraft.genelInd=${v};render()`,saleDraft,"saleDraft")}</span><span>${saleDraft.genelInd?"-"+money(ara-gt):"-"}</span></div>
    <div class="tot g"><span>Genel toplam</span><span>${money(gt)}</span></div>
    <h2 style="margin-top:16px">4. Ödeme</h2><div class="grid2">
-    <label>Ödeme durumu<select onchange="saleDraft.odeme=this.value;render()"><option value="odendi" ${saleDraft.odeme==="odendi"?"selected":""}>Ödeme alındı (tamamı)</option><option value="kismi" ${saleDraft.odeme==="kismi"?"selected":""}>Kısmi ödeme alındı</option><option value="yok" ${saleDraft.odeme==="yok"?"selected":""}>Ödeme alınmadı (cariye yaz)</option></select></label>
-    ${saleDraft.odeme!=="yok"?`<label>Ödeme yöntemi<select onchange="saleDraft.yontem=this.value">${YONTEM.map(y=>`<option ${saleDraft.yontem===y?"selected":""}>${y}</option>`).join("")}</select></label>`:""}
-    ${saleDraft.odeme==="kismi"?`<label>Alınan tutar (₺)<input type="number" min="0" step="0.01" value="${esc(saleDraft.tutar)}" oninput="saleDraft.tutar=this.value"></label>`:""}</div>
-   <div style="margin-top:14px;text-align:right"><button class="btn" onclick="saveSale()">Fişi kaydet</button></div></div></div></div>`;
+    <label>Ödeme Durumu<select onchange="saleDraft.odeme=this.value;render()"><option value="odendi" ${saleDraft.odeme==="odendi"?"selected":""}>Ödeme alındı (tamamı)</option><option value="kismi" ${saleDraft.odeme==="kismi"?"selected":""}>Kısmi ödeme alındı</option><option value="yok" ${saleDraft.odeme==="yok"?"selected":""}>Ödeme alınmadı (cariye yaz)</option></select></label>
+    ${saleDraft.odeme!=="yok"?`<label>Ödeme Yöntemi<select onchange="saleDraft.yontem=this.value">${YONTEM.map(y=>`<option ${saleDraft.yontem===y?"selected":""}>${y}</option>`).join("")}</select></label>`:""}
+    ${saleDraft.odeme==="kismi"?`<label>Alınan Tutar (₺)<input type="number" min="0" step="0.01" value="${esc(saleDraft.tutar)}" oninput="saleDraft.tutar=this.value"></label>`:""}</div>
+   <div style="margin-top:14px;text-align:right"><button class="btn" onclick="saveSale()">Fişi Kaydet</button></div></div></div></div>`;
 };
 
 V.stockin=()=>{
   const q=norm(inQ),hits=q?S.products.filter(p=>norm(p.ad+" "+p.kod).includes(q)).slice(0,6):[];
   const ins=[...S.mov].filter(m=>m.tip==="Ürün Girişi").reverse().slice(0,8);
   return `<h1>Ürün Girişi</h1><div class="sub">Yeni gelen ürünler burada stoğa eklenir; ürün geçmişinde görünür.</div>
-  <div class="cols"><div class="panel"><h2>Yeni giriş</h2>
+  <div class="cols"><div class="panel"><h2>Yeni Giriş</h2>
    <input style="width:100%;margin-bottom:10px" id="iq" placeholder="Ürün ara..." value="${esc(inQ)}" oninput="inQ=this.value;inSel=null;keepFocus('stockin','iq')">
    ${hits.length&&!inSel?`<div class="hits">${hits.map(p=>`<div class="hit" onclick="inSel=${p.id};inQ='';render()"><span>${esc(p.ad)}<div class="muted">${esc(p.kod)}</div></span><span class="muted">Stok ${stok(p.id)}</span></div>`).join("")}</div>`:""}
-   ${inSel?`<div class="last" style="background:var(--okbg);color:var(--ok)">Seçili: <b>${esc(prod(inSel).ad)}</b> · mevcut stok ${stok(inSel)}</div><div class="grid2"><label>Gelen adet<input type="number" min="1" id="ia" value="1"></label><label>Tedarikçi / not<input id="ik" placeholder="Örn. Örnek Oto Yedek Ltd."></label></div><div style="margin-top:12px"><button class="btn" onclick="saveIn()">Stoğa ekle</button></div>`:'<div class="muted">Önce ürünü arayıp seçin.</div>'}</div>
-  <div class="panel"><h2>Son ürün girişleri</h2><div class="tw"><table><tr><th>Tarih</th><th>Ürün</th><th class="n">Adet</th></tr>${ins.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(prod(m.u).ad)}<div class="muted">${esc(m.kim)} · ${esc(m.kul)}</div></td><td class="n pos">+${m.adet}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Kayıt yok</td></tr>'}</table></div></div></div>`;
+   ${inSel?`<div class="last" style="background:var(--okbg);color:var(--ok)">Seçili: <b>${esc(prod(inSel).ad)}</b> · mevcut stok ${stok(inSel)}</div><div class="grid2"><label>Gelen Adet<input type="number" min="1" id="ia" value="1"></label><label>Tedarikçi / Not<input id="ik" placeholder="Örn. Örnek Oto Yedek Ltd."></label></div><div style="margin-top:12px"><button class="btn" onclick="saveIn()">Stoğa Ekle</button></div>`:'<div class="muted">Önce ürünü arayıp seçin.</div>'}</div>
+  <div class="panel"><h2>Son Ürün Girişleri</h2><div class="tw"><table><tr><th>Tarih</th><th>Ürün</th><th class="n">Adet</th></tr>${ins.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(prod(m.u).ad)}<div class="muted">${esc(m.kim)} · ${esc(m.kul)}</div></td><td class="n pos">+${m.adet}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Kayıt yok</td></tr>'}</table></div></div></div>`;
 };
 
 V.sales=()=>{
@@ -284,9 +284,9 @@ V.cari=()=>{
   const list=customers().filter(c=>!q||norm(c.ad).includes(q));
   const tb=list.reduce((a,c)=>a+Math.max(0,c.borc),0);
   return `<h1>Cari (Müşteriler)</h1><div class="sub">Cari hesabı buradan elle açabilir ya da fiş keserken yeni isim yazarak otomatik açabilirsiniz. Bakiye = satışlar − iadeler − ödemeler.</div>
-  <div class="cards"><div class="card"><div class="l">Cari hesap sayısı</div><div class="v">${list.length}</div></div><div class="card"><div class="l">Toplam açık alacak</div><div class="v">${money(tb)}</div></div></div>
-  <div class="panel"><div class="row"><input class="grow" id="cq" placeholder="Müşteri ara..." value="${esc(window._cq||"")}" oninput="window._cq=this.value;keepFocus('cari','cq')"><button class="btn" onclick="customerForm()">+ Yeni cari hesap</button></div>
-  <div class="tw"><table><tr><th>Müşteri</th><th>Telefon</th><th class="n">Net satış</th><th class="n">Ödenen</th><th class="n">Bakiye</th></tr>
+  <div class="cards"><div class="card"><div class="l">Cari Hesap Sayısı</div><div class="v">${list.length}</div></div><div class="card"><div class="l">Toplam Açık Alacak</div><div class="v">${money(tb)}</div></div></div>
+  <div class="panel"><div class="row"><input class="grow" id="cq" placeholder="Müşteri ara..." value="${esc(window._cq||"")}" oninput="window._cq=this.value;keepFocus('cari','cq')"><button class="btn" onclick="customerForm()">+ Yeni Cari Hesap</button></div>
+  <div class="tw"><table><tr><th>Müşteri</th><th>Telefon</th><th class="n">Net Satış</th><th class="n">Ödenen</th><th class="n">Bakiye</th></tr>
   ${list.map(c=>`<tr class="click" onclick="cariDetail('${enc(c.ad)}')"><td>${esc(c.ad)}<div class="muted">${c.adet} fiş</div></td><td>${esc(c.tel||"-")}</td><td class="n">${money(c.satis-c.iade)}</td><td class="n">${money(c.odenen-c.iadeOde)}</td><td class="n">${balText(c)}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Müşteri yok</td></tr>'}</table></div></div>`;
 };
 
@@ -299,10 +299,10 @@ V.reports=()=>{
   const byY=YONTEM.map(y=>[y,pays.filter(o=>o.yontem===y).reduce((a,o)=>a+o.tutar,0)-rf.filter(f=>f.yontem===y).reduce((a,f)=>a+f.tutar,0)]);
   return `<h1>Gün Sonu Raporu</h1><div class="sub">Seçilen gün için satış, iade ve tahsilat.</div>
   <div class="panel noprint"><div class="row"><label>Gün <input type="date" value="${d}" onchange="window._rd=this.value;render()"></label>
-  <button class="btn" onclick="csvDay('${d}')">Excel için indir (CSV)</button><button class="btn s" onclick="csvStock()">Tüm stok listesini indir</button><button class="btn s" onclick="window.print()">Yazdır</button></div></div>
-  <div class="cards"><div class="card"><div class="l">Satış fişi</div><div class="v">${sd.length}</div></div><div class="card"><div class="l">Toplam satış</div><div class="v">${money(ts)}</div></div><div class="card"><div class="l">İade</div><div class="v">${money(ti)}</div></div><div class="card"><div class="l">Net satış</div><div class="v">${money(ts-ti)}</div></div><div class="card"><div class="l">Tahsil edilen</div><div class="v">${money(tp)}</div></div></div>
+  <button class="btn" onclick="csvDay('${d}')">Excel için İndir (CSV)</button><button class="btn s" onclick="csvStock()">Tüm Stok Listesini İndir</button><button class="btn s" onclick="window.print()">Yazdır</button></div></div>
+  <div class="cards"><div class="card"><div class="l">Satış Fişi</div><div class="v">${sd.length}</div></div><div class="card"><div class="l">Toplam Satış</div><div class="v">${money(ts)}</div></div><div class="card"><div class="l">İade</div><div class="v">${money(ti)}</div></div><div class="card"><div class="l">Net Satış</div><div class="v">${money(ts-ti)}</div></div><div class="card"><div class="l">Tahsil Edilen</div><div class="v">${money(tp)}</div></div></div>
   <div class="cols"><div class="panel"><h2>Satış fişleri — ${fd(d)}</h2><div class="tw"><table><tr><th>No</th><th>Müşteri</th><th class="n">Tutar</th></tr>${sd.map(s=>`<tr><td>${s.no}</td><td>${esc(s.musteri)}</td><td class="n">${money(total(s))}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Bu gün satış yok</td></tr>'}</table></div>
-  ${id.length?`<h2 style="margin-top:14px">İade fişleri</h2><div class="tw"><table>${id.map(i=>`<tr><td>${i.no}</td><td>${esc(i.musteri)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}</table></div>`:""}</div>
+  ${id.length?`<h2 style="margin-top:14px">İade Fişleri</h2><div class="tw"><table>${id.map(i=>`<tr><td>${i.no}</td><td>${esc(i.musteri)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}</table></div>`:""}</div>
   <div class="panel"><h2>Tahsilat yöntemine göre — ${fd(d)}</h2><div class="tw"><table><tr><th>Yöntem</th><th class="n">Tutar</th></tr>${byY.map(y=>`<tr><td>${y[0]}</td><td class="n">${money(y[1])}</td></tr>`).join("")}<tr><td><b>Toplam</b></td><td class="n"><b>${money(tp)}</b></td></tr></table></div>
   <h2 style="margin-top:14px">Tahsilatlar</h2><div class="tw"><table><tr><th>Müşteri</th><th>Yöntem</th><th class="n">Tutar</th></tr>${pays.map(o=>`<tr><td>${esc(o.musteri)}<div class="muted">${o.no}</div></td><td>${esc(o.yontem)}</td><td class="n">${money(o.tutar)}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Bu gün tahsilat yok</td></tr>'}</table></div></div></div>`;
 };
@@ -311,10 +311,10 @@ function headHtml(title,no,tarih){return `<div class="head"><div><img src="${LOG
 V.doc=()=>{
   const no=window._doc,s=S.sales.find(x=>x.no===no),i=!s&&S.iades.find(x=>x.no===no);
   if(!s&&!i)return"";
-  const bar=`<div class="row noprint"><button class="btn s" onclick="go('sales')">← Geri</button><button class="btn" onclick="window.print()">A4 yazdır / PDF</button><button class="btn s" onclick="shareModal('${no}')">Paylaş</button>${s&&!s.iptal?`<button class="btn s" onclick="returnModal('${no}')">İade fişi oluştur</button>`:""}</div>`;
+  const bar=`<div class="row noprint"><button class="btn s" onclick="go('sales')">← Geri</button><button class="btn" onclick="window.print()">Yazdır / PDF</button><button class="btn s" onclick="shareModal('${no}')">Paylaş</button>${s&&!s.iptal?`<button class="btn s" onclick="returnModal('${no}')">İade Fişi Oluştur</button>`:""}</div>`;
   if(i){return bar+`<div class="sheet">${headHtml(DOC.iade,i.no,i.tarih)}
    <div style="margin-bottom:14px">Sayın <b>${esc(i.musteri)}</b> · Bağlı satış fişi: <b>${i.satisNo}</b>${i.not?` · Not: ${esc(i.not)}`:""}</div>
-   <table><tr><th>Kod</th><th>Ürün</th><th class="n">Adet</th><th class="n">Birim fiyat</th><th class="n">Tutar</th></tr>
+   <table><tr><th>Kod</th><th>Ürün</th><th class="n">Adet</th><th class="n">Birim Fiyat</th><th class="n">Tutar</th></tr>
    ${i.satirlar.map(l=>`<tr><td>${esc(prod(l.u).kod)}</td><td>${esc(prod(l.u).ad)}</td><td class="n">${l.adet}</td><td class="n">${money(l.birim)}</td><td class="n">${money(l.adet*l.birim)}</td></tr>`).join("")}</table>
    <div style="max-width:300px;margin-left:auto;margin-top:12px"><div class="tot g"><span>İADE TOPLAMI</span><span>${money(iadeTotal(i))}</span></div></div>
    <div class="stamp"><div>Teslim eden<br><br>Kaşe / İmza</div><div style="text-align:right">Teslim alan<br><br>İmza</div></div>
@@ -322,7 +322,7 @@ V.doc=()=>{
   const yont=[...new Set(s.odemeler.map(o=>o.yontem))].join(", ");
   return bar+`<div class="sheet">${s.iptal?'<div class="iptal">İPTAL</div>':""}${headHtml(DOC.satis,s.no,s.tarih)}
    <div style="margin-bottom:14px">Sayın <b>${esc(s.musteri)}</b></div>
-   <table><tr><th>Kod</th><th>Ürün</th><th class="n">Adet</th><th class="n">Birim fiyat</th><th class="n">İndirim</th><th class="n">Tutar</th></tr>
+   <table><tr><th>Kod</th><th>Ürün</th><th class="n">Adet</th><th class="n">Birim Fiyat</th><th class="n">İndirim</th><th class="n">Tutar</th></tr>
    ${s.satirlar.map(l=>`<tr><td>${esc(prod(l.u).kod)}</td><td>${esc(prod(l.u).ad)}</td><td class="n">${l.adet}</td><td class="n">${money(l.fiyat)}</td><td class="n">${l.ind?"%"+l.ind:"-"}</td><td class="n">${money(lineNet(l))}</td></tr>`).join("")}</table>
    <div style="max-width:320px;margin-left:auto;margin-top:12px"><div class="tot"><span>Ara toplam</span><span>${money(sub(s))}</span></div>
    ${s.genelInd?`<div class="tot"><span>Genel indirim (%${s.genelInd})</span><span>-${money(sub(s)-total(s))}</span></div>`:""}
@@ -336,7 +336,7 @@ V.doc=()=>{
 /* ---------- eylemler ---------- */
 function render(){
   document.querySelectorAll(".side .nav").forEach(b=>b.classList.toggle("on",b.dataset.v===view||(view==="doc"&&b.dataset.v==="sales")));
-  const demo=`<div class="demo noprint"><span><b>DEMO:</b> örnek verilerle çalışır, hiçbir şey sunucuya gitmez. Değişiklikler yalnızca bu tarayıcıda kalır.</span><button class="btn s sm" onclick="resetDemo()">Örnek verileri sıfırla</button></div>`;
+  const demo=`<div class="demo noprint"><span><b>DEMO:</b> örnek verilerle çalışır, hiçbir şey sunucuya gitmez. Değişiklikler yalnızca bu tarayıcıda kalır.</span><button class="btn s sm" onclick="resetDemo()">Örnek Verileri Sıfırla</button></div>`;
   document.getElementById("main").innerHTML=demo+V[view]();
   document.getElementById("userSel").value=S.user;
 }
@@ -373,12 +373,12 @@ function returnModal(no){
   const s=S.sales.find(x=>x.no===no);if(!s||s.iptal)return;
   const rows=s.satirlar.map((l,i)=>({l,i,max:l.adet-returnedQty(s,l.u)}));
   if(!rows.some(r=>r.max>0))return alert("Bu fişteki tüm ürünler zaten iade edilmiş.");
-  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">İade fişi oluştur</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
+  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">İade Fişi Oluştur</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
   <div class="muted">Bağlı fiş: ${s.no} · ${esc(s.musteri)}. İade edilen ürünler stoğa geri eklenir, tutar müşterinin cari hesabından düşer. İade, satıştaki indirimli fiyat üzerinden hesaplanır.</div>
-  <div class="tw" style="margin-top:12px"><table><tr><th>Ürün</th><th class="n">Satılan</th><th class="n">Daha önce iade</th><th class="n">İade adedi</th></tr>
+  <div class="tw" style="margin-top:12px"><table><tr><th>Ürün</th><th class="n">Satılan</th><th class="n">Daha Önce İade</th><th class="n">İade Adedi</th></tr>
   ${rows.map(r=>`<tr><td>${esc(prod(r.l.u).ad)}</td><td class="n">${r.l.adet}</td><td class="n">${r.l.adet-r.max}</td><td class="n">${r.max>0?`<input type="number" min="0" max="${r.max}" value="0" id="r_${r.i}" style="width:70px">`:'<span class="muted">-</span>'}</td></tr>`).join("")}</table></div>
-  <label class="muted" style="display:block;margin-top:12px">İade nedeni (isteğe bağlı)<input id="r_not" style="width:100%;margin-top:4px"></label>
-  <div style="margin-top:14px;text-align:right"><button class="btn" onclick="doReturn('${s.no}')">İade fişini kaydet</button></div>`);
+  <label class="muted" style="display:block;margin-top:12px">İade Nedeni (İsteğe Bağlı)<input id="r_not" style="width:100%;margin-top:4px"></label>
+  <div style="margin-top:14px;text-align:right"><button class="btn" onclick="doReturn('${s.no}')">İade Fişini Kaydet</button></div>`);
 }
 function doReturn(no){
   const s=S.sales.find(x=>x.no===no),items=[];
@@ -398,12 +398,12 @@ function shareText(no){
 }
 function shareModal(no){
   const t=shareText(no),canNative=!!navigator.share;
-  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">Fişi paylaş</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
+  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">Fişi Paylaş</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
   <pre style="white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;font:inherit">${esc(t)}</pre>
-  ${canNative?`<button class="btn shbtn" onclick="nativeShare('${no}')">Telefonda paylaş…</button>`:""}
+  ${canNative?`<button class="btn shbtn" onclick="nativeShare('${no}')">Telefonda Paylaş…</button>`:""}
   <a class="btn s shbtn" style="text-decoration:none;display:block" target="_blank" rel="noopener" href="https://wa.me/?text=${enc(t)}">WhatsApp ile gönder</a>
   <a class="btn s shbtn" style="text-decoration:none;display:block" href="mailto:?subject=${enc("Fiş "+no)}&body=${enc(t)}">E-posta ile gönder</a>
-  <button class="btn s shbtn" onclick="copyText('${no}')">Metni kopyala</button>
+  <button class="btn s shbtn" onclick="copyText('${no}')">Metni Kopyala</button>
   <div class="muted">Demoda fiş özeti metin olarak paylaşılır. Gerçek sistemde fiş PDF dosyası olarak gönderilir.</div>`);
 }
 function nativeShare(no){navigator.share({title:"Fiş "+no,text:shareText(no)}).catch(()=>{})}
@@ -416,17 +416,17 @@ function detail(id){
   const p=prod(id),s=stok(id),ls=lastSale(id),h=S.mov.filter(m=>m.u===id).reverse();
   modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(p.ad)}</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
   <div class="muted">${esc(p.kod)} · ${esc(p.kat)} · ${esc(p.marka)} · Raf ${esc(p.raf)}</div>
-  <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Stok</div><div class="v ${s<=p.min?"neg":""}">${s}</div></div><div class="card"><div class="l">Liste fiyatı</div><div class="v">${money(p.fiyat)}</div></div><div class="card"><div class="l">Alt sınır</div><div class="v">${p.min}</div></div></div>
+  <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Stok</div><div class="v ${s<=p.min?"neg":""}">${s}</div></div><div class="card"><div class="l">Liste Fiyatı</div><div class="v">${money(p.fiyat)}</div></div><div class="card"><div class="l">Alt Sınır</div><div class="v">${p.min}</div></div></div>
   ${ls?`<div class="last"><b>Son satış:</b> ${fd(ls.tarih)} · ${esc(ls.musteri)} · ${ls.adet} adet · birim ${money(ls.fiyat)} (indirim sonrası)</div>`:'<div class="last">Bu ürün henüz satılmadı.</div>'}
-  <h2>Ürün geçmişi</h2><div class="tw"><table><tr><th>Tarih</th><th>Hareket</th><th class="n">Adet</th><th>Kime / nereden</th><th>Fiş</th><th>Kaydeden</th></tr>
+  <h2>Ürün Geçmişi</h2><div class="tw"><table><tr><th>Tarih</th><th>Hareket</th><th class="n">Adet</th><th>Kime / Nereden</th><th>Fiş</th><th>Kaydeden</th></tr>
   ${h.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(m.tip)}</td><td class="n ${m.adet>0?"pos":"neg"}">${m.adet>0?"+":""}${m.adet}</td><td>${esc(m.kim)}</td><td>${esc(m.belge||"-")}</td><td>${esc(m.kul)}</td></tr>`).join("")}</table></div>`);
 }
 function productForm(){
-  modal(`<h2>Yeni ürün</h2><div class="grid2">
-  <label>Stok kodu<input id="f_kod"></label><label>Ürün adı<input id="f_ad" placeholder="Örn. Fiat Egea Fren Diski - Düz"></label>
+  modal(`<h2>Yeni Ürün</h2><div class="grid2">
+  <label>Stok Kodu<input id="f_kod"></label><label>Ürün Adı<input id="f_ad" placeholder="Örn. Fiat Egea Fren Diski - Düz"></label>
   <label>Kategori<select id="f_kat">${CATS.map(c=>`<option>${c}</option>`).join("")}</select></label><label>Marka<input id="f_marka"></label>
-  <label>Raf no<input id="f_raf" placeholder="A-01-2"></label><label>Liste fiyatı (₺)<input id="f_fiyat" type="number" min="0" step="0.01"></label>
-  <label>Kritik stok alt sınırı (zorunlu)<input id="f_min" type="number" min="0" step="1" placeholder="Adet girin"></label><label>Açılış stoğu (adet)<input id="f_stok" type="number" min="0" value="0"></label></div>
+  <label>Raf No<input id="f_raf" placeholder="A-01-2"></label><label>Liste Fiyatı (₺)<input id="f_fiyat" type="number" min="0" step="0.01"></label>
+  <label>Kritik Stok Alt Sınırı (Zorunlu)<input id="f_min" type="number" min="0" step="1" placeholder="Adet girin"></label><label>Açılış Stoğu (Adet)<input id="f_stok" type="number" min="0" value="0"></label></div>
   <div style="margin-top:14px;text-align:right"><button class="btn s" onclick="closeModal()">Vazgeç</button> <button class="btn" onclick="saveProduct()">Kaydet</button></div>`);
 }
 function saveProduct(){
@@ -446,7 +446,7 @@ function customerForm(e){
   const c=e?customers().find(x=>x.ad===dec(e)):null;
   modal(`<h2>${c?"Cari hesap bilgileri":"Yeni cari hesap"}</h2><div class="grid2">
   <label>Ad Soyad / Firma<input id="c_ad" value="${esc(c?c.ad:"")}" ${c?"readonly":""}></label><label>Telefon<input id="c_tel" value="${esc(c?c.tel:"")}"></label>
-  <label>Adres<input id="c_adres" value="${esc(c?c.adres:"")}"></label><label>Vergi no / kimlik no<input id="c_vergi" value="${esc(c?c.vergi:"")}"></label>
+  <label>Adres<input id="c_adres" value="${esc(c?c.adres:"")}"></label><label>Vergi No / Kimlik No<input id="c_vergi" value="${esc(c?c.vergi:"")}"></label>
   <label style="grid-column:1/-1">Not<input id="c_not" value="${esc(c?c.not:"")}"></label></div>
   <div style="margin-top:14px;text-align:right"><button class="btn s" onclick="closeModal()">Vazgeç</button> <button class="btn" onclick="saveCustomer('${c?enc(c.ad):""}')">Kaydet</button></div>`);
 }
@@ -461,15 +461,15 @@ function saveCustomer(e){
 function cariDetail(e){
   const ad=dec(e),sales=S.sales.filter(s=>s.musteri===ad&&!s.iptal),c=customers().find(x=>x.ad===ad);
   const open=sales.filter(s=>rest(s)>0),iades=S.iades.filter(i=>i.musteri===ad),refs=S.refunds.filter(f=>f.musteri===ad);
-  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(ad)}</h2><span><button class="btn s sm" onclick="customerForm('${enc(ad)}')">Bilgileri düzenle</button> <button class="btn s sm" onclick="closeModal()">Kapat</button></span></div>
+  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(ad)}</h2><span><button class="btn s sm" onclick="customerForm('${enc(ad)}')">Bilgileri Düzenle</button> <button class="btn s sm" onclick="closeModal()">Kapat</button></span></div>
   <div class="muted">${esc(c.tel||"Telefon yok")} · ${esc(c.adres||"Adres yok")}${c.vergi?" · "+esc(c.vergi):""}${c.not?" · "+esc(c.not):""}</div>
-  <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Net satış (iade düşülmüş)</div><div class="v">${money(c.satis-c.iade)}</div></div><div class="card"><div class="l">Ödenen</div><div class="v">${money(c.odenen-c.iadeOde)}</div></div><div class="card"><div class="l">Bakiye</div><div class="v">${c.borc>0?`<span class="neg">Borcu ${money(c.borc)}</span>`:c.borc<0?`<span class="pos">Alacağı ${money(-c.borc)}</span>`:'<span class="pos">Borcu yok</span>'}</div></div></div>
-  ${open.length?`<div class="panel" style="background:var(--bg)"><h2>Ödeme al</h2><div class="grid2"><label>Hangi fiş<select id="p_no">${open.map(s=>`<option value="${s.no}">${s.no} · kalan ${money(rest(s))}</option>`).join("")}</select></label><label>Tutar (₺)<input id="p_t" type="number" min="0" step="0.01"></label><label>Ödeme tarihi<input id="p_d" type="date" value="${todayStr()}"></label><label>Yöntem<select id="p_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addPay('${enc(ad)}')">Ödemeyi kaydet</button></div></div>`:""}
-  ${c.borc<0?`<div class="panel" style="background:var(--bg)"><h2>Müşteriye para iadesi yap</h2><div class="grid2"><label>Tutar (₺)<input id="rf_t" type="number" min="0" step="0.01" value="${-c.borc}"></label><label>Yöntem<select id="rf_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addRefund('${enc(ad)}')">Para iadesini kaydet</button></div></div>`:""}
-  <h2>Satışlar ve ödemeler</h2><div class="tw"><table><tr><th>Fiş</th><th>Tarih</th><th class="n">Toplam</th><th>Ödemeler (tarih · tutar · yöntem)</th><th class="n">Kalan</th></tr>
+  <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Net Satış (İade Düşülmüş)</div><div class="v">${money(c.satis-c.iade)}</div></div><div class="card"><div class="l">Ödenen</div><div class="v">${money(c.odenen-c.iadeOde)}</div></div><div class="card"><div class="l">Bakiye</div><div class="v">${c.borc>0?`<span class="neg">Borcu ${money(c.borc)}</span>`:c.borc<0?`<span class="pos">Alacağı ${money(-c.borc)}</span>`:'<span class="pos">Borcu yok</span>'}</div></div></div>
+  ${open.length?`<div class="panel" style="background:var(--bg)"><h2>Ödeme Al</h2><div class="grid2"><label>Hangi Fiş<select id="p_no">${open.map(s=>`<option value="${s.no}">${s.no} · kalan ${money(rest(s))}</option>`).join("")}</select></label><label>Tutar (₺)<input id="p_t" type="number" min="0" step="0.01"></label><label>Ödeme Tarihi<input id="p_d" type="date" value="${todayStr()}"></label><label>Yöntem<select id="p_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addPay('${enc(ad)}')">Ödemeyi Kaydet</button></div></div>`:""}
+  ${c.borc<0?`<div class="panel" style="background:var(--bg)"><h2>Müşteriye Para İadesi Yap</h2><div class="grid2"><label>Tutar (₺)<input id="rf_t" type="number" min="0" step="0.01" value="${-c.borc}"></label><label>Yöntem<select id="rf_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addRefund('${enc(ad)}')">Para İadesini Kaydet</button></div></div>`:""}
+  <h2>Satışlar ve Ödemeler</h2><div class="tw"><table><tr><th>Fiş</th><th>Tarih</th><th class="n">Toplam</th><th>Ödemeler (Tarih · Tutar · Yöntem)</th><th class="n">Kalan</th></tr>
   ${sales.map(s=>`<tr><td>${s.no}</td><td>${fd(s.tarih)}</td><td class="n">${money(total(s))}${iadeOf(s)?`<div class="muted">iade -${money(iadeOf(s))}</div>`:""}</td><td>${s.odemeler.map(o=>`${fd(o.tarih)} · ${money(o.tutar)} <span class="muted">(${esc(o.yontem)})</span>`).join("<br>")||'<span class="muted">Ödeme yok</span>'}</td><td class="n ${rest(s)>0?"neg":""}">${money(rest(s))}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Henüz fiş yok</td></tr>'}</table></div>
   ${iades.length||refs.length?`<h2 style="margin-top:14px">İadeler</h2><div class="tw"><table>${iades.map(i=>`<tr><td>${i.no}</td><td>${fd(i.tarih)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}${refs.map(f=>`<tr><td>Para iadesi</td><td>${fd(f.tarih)} · ${esc(f.yontem)}</td><td class="n">${money(f.tutar)}</td></tr>`).join("")}</table></div>`:""}
-  <div style="margin-top:12px"><button class="btn s" onclick="statement('${enc(ad)}')">Cari ekstre yazdır</button></div>`);
+  <div style="margin-top:12px"><button class="btn s" onclick="statement('${enc(ad)}')">Cari Ekstre Yazdır</button></div>`);
 }
 function addPay(e){const ad=dec(e),no=document.getElementById("p_no").value,t=Number(document.getElementById("p_t").value),d=document.getElementById("p_d").value;
   const s=S.sales.find(x=>x.no===no);if(!s)return;if(!(t>0))return alert("Tutarı girin.");if(!d)return alert("Ödeme tarihini seçin.");if(t>rest(s))return alert("Tutar kalan borçtan büyük olamaz (kalan: "+money(rest(s))+").");
@@ -481,12 +481,12 @@ function statement(e){
   const ad=dec(e),sales=S.sales.filter(s=>s.musteri===ad&&!s.iptal),c=customers().find(x=>x.ad===ad);
   closeModal();window._doc=null;
   const rows=[...sales.flatMap(s=>[{t:s.tarih,a:"Satış "+s.no,b:total(s),o:0},...s.odemeler.map(o=>({t:o.tarih,a:`Ödeme (${o.yontem}) ${s.no}`,b:0,o:o.tutar}))]),...S.iades.filter(i=>i.musteri===ad).map(i=>({t:i.tarih,a:"İade "+i.no,b:0,o:iadeTotal(i)})),...S.refunds.filter(f=>f.musteri===ad).map(f=>({t:f.tarih,a:`Para iadesi (${f.yontem})`,b:f.tutar,o:0}))].sort((x,y)=>x.t.localeCompare(y.t));
-  document.getElementById("main").innerHTML=`<div class="row noprint"><button class="btn s" onclick="go('cari')">← Geri</button><button class="btn" onclick="window.print()">A4 yazdır / PDF</button></div>
+  document.getElementById("main").innerHTML=`<div class="row noprint"><button class="btn s" onclick="go('cari')">← Geri</button><button class="btn" onclick="window.print()">Yazdır / PDF</button></div>
   <div class="sheet"><div class="head"><div><img src="${LOGO}" alt="Kayıranlar Otomotiv"><div>(örnek adres satırı)</div></div><div style="text-align:right"><h3>CARİ EKSTRE</h3><div>Tarih: ${fd(todayStr())}</div></div></div>
   <div style="margin-bottom:12px">Müşteri: <b>${esc(ad)}</b></div>
-  <table><tr><th>Tarih</th><th>İşlem</th><th class="n">Borç</th><th class="n">Ödeme / iade</th></tr>
+  <table><tr><th>Tarih</th><th>İşlem</th><th class="n">Borç</th><th class="n">Ödeme / İade</th></tr>
   ${rows.map(r=>`<tr><td>${fd(r.t)}</td><td>${esc(r.a)}</td><td class="n">${r.b?money(r.b):""}</td><td class="n">${r.o?money(r.o):""}</td></tr>`).join("")}</table>
-  <div style="max-width:320px;margin-left:auto;margin-top:12px"><div class="tot"><span>Net satış</span><span>${money(c.satis-c.iade)}</span></div><div class="tot"><span>Toplam ödeme</span><span>${money(c.odenen-c.iadeOde)}</span></div><div class="tot g"><span>${c.borc<0?"MÜŞTERİ ALACAĞI":"GÜNCEL BORÇ"}</span><span>${money(Math.abs(c.borc))}</span></div></div></div>`;
+  <div style="max-width:320px;margin-left:auto;margin-top:12px"><div class="tot"><span>Net Satış</span><span>${money(c.satis-c.iade)}</span></div><div class="tot"><span>Toplam ödeme</span><span>${money(c.odenen-c.iadeOde)}</span></div><div class="tot g"><span>${c.borc<0?"MÜŞTERİ ALACAĞI":"GÜNCEL BORÇ"}</span><span>${money(Math.abs(c.borc))}</span></div></div></div>`;
 }
 function download(name,rows){const csv="﻿"+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
