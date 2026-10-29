@@ -70,7 +70,7 @@ td.n,th.n{text-align:right;white-space:nowrap}
   <button class="nav" data-v="products">Ürünler</button>
   <button class="nav" data-v="sale">Yeni Satış</button>
   <button class="nav" data-v="stockin">Ürün Girişi</button>
-  <button class="nav" data-v="sales">Faturalar</button>
+  <button class="nav" data-v="sales">Satışlar</button>
   <button class="nav" data-v="cari">Cari (Müşteriler)</button>
   <button class="nav" data-v="reports">Raporlar</button>
   <div class="who">Giriş yapan (demo)<select id="userSel"><option>Kullanıcı 1</option><option>Kullanıcı 2</option><option>Kullanıcı 3</option></select></div>
@@ -273,7 +273,7 @@ V.stockin=()=>{
 
 V.sales=()=>{
   const rows=[...S.sales.map(s=>({t:"s",no:s.no,tarih:s.tarih,ad:s.musteri,o:s})),...S.iades.map(i=>({t:"i",no:i.no,tarih:i.tarih,ad:i.musteri,o:i}))].sort((a,b)=>b.tarih.localeCompare(a.tarih)||b.no.localeCompare(a.no));
-  return `<h1>Faturalar</h1><div class="sub">Satış ve iade faturalarının arşivi. Fatura numarası sıralıdır; iptal edilen fatura silinmez, iptal olarak kalır.</div>
+  return `<h1>Satışlar</h1><div class="sub">Satış ve iade faturalarının arşivi. Fatura numarası sıralıdır; iptal edilen fatura silinmez, iptal olarak kalır.</div>
   <div class="panel tw"><table><tr><th>No</th><th>Tür</th><th>Tarih</th><th>Müşteri</th><th class="n">Tutar</th><th class="n">Kalan</th><th>Durum</th><th></th></tr>
   ${rows.map(r=>r.t==="s"?`<tr><td>${r.no}</td><td>Satış</td><td>${fd(r.tarih)}</td><td>${esc(r.ad)}</td><td class="n">${money(total(r.o))}</td><td class="n">${money(rest(r.o))}</td><td>${saleBadge(r.o)}</td><td class="n"><button class="btn s sm" onclick="doc('${r.no}')">Fatura</button> ${r.o.iptal?"":`<button class="btn s sm" onclick="returnModal('${r.no}')">İade</button> <button class="btn d sm" onclick="cancelSale('${r.no}')">İptal</button>`}</td></tr>`
    :`<tr><td>${r.no}</td><td>İade</td><td>${fd(r.tarih)}</td><td>${esc(r.ad)}<div class="muted">Bağlı fatura: ${r.o.satisNo}</div></td><td class="n neg">-${money(iadeTotal(r.o))}</td><td class="n">-</td><td><span class="b warn">İade</span></td><td class="n"><button class="btn s sm" onclick="doc('${r.no}')">Fatura</button></td></tr>`).join("")}</table></div>`;
@@ -466,7 +466,7 @@ function cariDetail(e){
   <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Net satış (iade düşülmüş)</div><div class="v">${money(c.satis-c.iade)}</div></div><div class="card"><div class="l">Ödenen</div><div class="v">${money(c.odenen-c.iadeOde)}</div></div><div class="card"><div class="l">Bakiye</div><div class="v">${c.borc>0?`<span class="neg">Borcu ${money(c.borc)}</span>`:c.borc<0?`<span class="pos">Alacağı ${money(-c.borc)}</span>`:'<span class="pos">Borcu yok</span>'}</div></div></div>
   ${open.length?`<div class="panel" style="background:var(--bg)"><h2>Ödeme al</h2><div class="grid2"><label>Hangi fatura<select id="p_no">${open.map(s=>`<option value="${s.no}">${s.no} · kalan ${money(rest(s))}</option>`).join("")}</select></label><label>Tutar (₺)<input id="p_t" type="number" min="0" step="0.01"></label><label>Ödeme tarihi<input id="p_d" type="date" value="${todayStr()}"></label><label>Yöntem<select id="p_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addPay('${enc(ad)}')">Ödemeyi kaydet</button></div></div>`:""}
   ${c.borc<0?`<div class="panel" style="background:var(--bg)"><h2>Müşteriye para iadesi yap</h2><div class="grid2"><label>Tutar (₺)<input id="rf_t" type="number" min="0" step="0.01" value="${-c.borc}"></label><label>Yöntem<select id="rf_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addRefund('${enc(ad)}')">Para iadesini kaydet</button></div></div>`:""}
-  <h2>Faturalar ve ödemeler</h2><div class="tw"><table><tr><th>Fatura</th><th>Tarih</th><th class="n">Toplam</th><th>Ödemeler (tarih · tutar · yöntem)</th><th class="n">Kalan</th></tr>
+  <h2>Satışlar ve ödemeler</h2><div class="tw"><table><tr><th>Fatura</th><th>Tarih</th><th class="n">Toplam</th><th>Ödemeler (tarih · tutar · yöntem)</th><th class="n">Kalan</th></tr>
   ${sales.map(s=>`<tr><td>${s.no}</td><td>${fd(s.tarih)}</td><td class="n">${money(total(s))}${iadeOf(s)?`<div class="muted">iade -${money(iadeOf(s))}</div>`:""}</td><td>${s.odemeler.map(o=>`${fd(o.tarih)} · ${money(o.tutar)} <span class="muted">(${esc(o.yontem)})</span>`).join("<br>")||'<span class="muted">Ödeme yok</span>'}</td><td class="n ${rest(s)>0?"neg":""}">${money(rest(s))}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Henüz fatura yok</td></tr>'}</table></div>
   ${iades.length||refs.length?`<h2 style="margin-top:14px">İadeler</h2><div class="tw"><table>${iades.map(i=>`<tr><td>${i.no}</td><td>${fd(i.tarih)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}${refs.map(f=>`<tr><td>Para iadesi</td><td>${fd(f.tarih)} · ${esc(f.yontem)}</td><td class="n">${money(f.tutar)}</td></tr>`).join("")}</table></div>`:""}
   <div style="margin-top:12px"><button class="btn s" onclick="statement('${enc(ad)}')">Cari ekstre yazdır</button></div>`);
