@@ -92,7 +92,7 @@ const offs=d=>{const x=new Date();x.setDate(x.getDate()+d);return x.toLocaleDate
 const fd=s=>s?s.split("-").reverse().join("."):"";
 const enc=encodeURIComponent, dec=decodeURIComponent;
 const YONTEM=["Nakit","Çek","Havale","Kredi Kartı"], IND=[0,10,20,30];
-const DOC={satis:"SATIŞ FATURASI",iade:"İADE FATURASI"};
+const DOC={satis:"SATIŞ FİŞİ",iade:"İADE FİŞİ"};
 const newDraft=()=>({musteri:"",tarih:todayStr(),odeme:"odendi",tutar:"",yontem:"Nakit",genelInd:0});
 let S, view="dash", cart=[], saleDraft=newDraft(), hitQ="", inQ="", inSel=null;
 
@@ -239,16 +239,16 @@ V.sale=()=>{
   const hits=q?S.products.filter(p=>norm(p.ad+" "+p.kod+" "+p.marka).includes(q)).slice(0,8):[];
   const ara=r2(cart.reduce((a,l)=>a+lineNet(l),0)),gt=r2(ara*(1-saleDraft.genelInd/100));
   const names=customers().map(c=>c.ad);
-  return `<h1>Yeni Satış Faturası</h1><div class="sub">Kayıt edilince ürünler stoktan otomatik düşer ve cariye işlenir.</div>
+  return `<h1>Yeni Satış Fişi</h1><div class="sub">Kayıt edilince ürünler stoktan otomatik düşer ve cariye işlenir.</div>
   <div class="cols s2"><div>
    <div class="panel"><h2>1. Müşteri ve tarih</h2><div class="grid2">
     <label>Kime satıldı (yazın ya da listeden seçin; yeni isim cari hesabı otomatik açar)<input id="sm" list="mlist" value="${esc(saleDraft.musteri)}" oninput="saleDraft.musteri=this.value" placeholder="Ad Soyad / Firma"></label>
-    <label>Fatura tarihi<input type="date" id="st" value="${saleDraft.tarih}" onchange="saleDraft.tarih=this.value"></label></div>
+    <label>Fiş tarihi<input type="date" id="st" value="${saleDraft.tarih}" onchange="saleDraft.tarih=this.value"></label></div>
     <datalist id="mlist">${names.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div>
    <div class="panel"><h2>2. Ürün ekle</h2>
     <input style="width:100%;margin-bottom:10px" id="hq" placeholder="Ürün adı, kodu ya da markası yazın..." value="${esc(hitQ)}" oninput="hitQ=this.value;keepFocus('sale','hq')">
     ${hits.length?`<div class="hits">${hits.map(p=>`<div class="hit" onclick="addCart(${p.id})"><span>${esc(p.ad)}<div class="muted">${esc(p.kod)} · Raf ${esc(p.raf)}</div></span><span class="right">${money(p.fiyat)}<div class="muted">Stok ${stok(p.id)}</div></span></div>`).join("")}</div>`:q?'<div class="muted">Eşleşen ürün yok</div>':""}</div></div>
-  <div><div class="panel"><h2>3. Fatura kalemleri</h2>
+  <div><div class="panel"><h2>3. Fiş kalemleri</h2>
    ${cart.length?`<div class="tw"><table><tr><th>Ürün</th><th class="n">Adet</th><th class="n">Birim fiyat</th><th>İndirim</th><th class="n">Tutar</th><th></th></tr>${cart.map((l,i)=>`<tr><td>${esc(prod(l.u).ad)}<div class="muted">Stok ${stok(l.u)}</div></td><td class="n"><input type="number" min="1" style="width:60px" value="${l.adet}" onchange="setCart(${i},'adet',this.value)"></td><td class="n"><input type="number" min="0" step="0.01" style="width:84px" value="${l.fiyat}" onchange="setCart(${i},'fiyat',this.value)"></td><td>${indSel(l.ind,v=>`setCart(${i},'ind',${v})`,l,`cart[${i}]`)}</td><td class="n">${money(lineNet(l))}</td><td><button class="btn d sm" onclick="cart.splice(${i},1);render()">×</button></td></tr>`).join("")}</table></div>`:'<div class="empty">Henüz ürün eklenmedi</div>'}
    <div class="tot" style="margin-top:8px"><span>Ara toplam</span><span>${money(ara)}</span></div>
    <div class="tot"><span>Genel indirim ${indSel(saleDraft.genelInd,v=>`saleDraft.genelInd=${v};render()`,saleDraft,"saleDraft")}</span><span>${saleDraft.genelInd?"-"+money(ara-gt):"-"}</span></div>
@@ -257,7 +257,7 @@ V.sale=()=>{
     <label>Ödeme durumu<select onchange="saleDraft.odeme=this.value;render()"><option value="odendi" ${saleDraft.odeme==="odendi"?"selected":""}>Ödeme alındı (tamamı)</option><option value="kismi" ${saleDraft.odeme==="kismi"?"selected":""}>Kısmi ödeme alındı</option><option value="yok" ${saleDraft.odeme==="yok"?"selected":""}>Ödeme alınmadı (cariye yaz)</option></select></label>
     ${saleDraft.odeme!=="yok"?`<label>Ödeme yöntemi<select onchange="saleDraft.yontem=this.value">${YONTEM.map(y=>`<option ${saleDraft.yontem===y?"selected":""}>${y}</option>`).join("")}</select></label>`:""}
     ${saleDraft.odeme==="kismi"?`<label>Alınan tutar (₺)<input type="number" min="0" step="0.01" value="${esc(saleDraft.tutar)}" oninput="saleDraft.tutar=this.value"></label>`:""}</div>
-   <div style="margin-top:14px;text-align:right"><button class="btn" onclick="saveSale()">Faturayı kaydet</button></div></div></div></div>`;
+   <div style="margin-top:14px;text-align:right"><button class="btn" onclick="saveSale()">Fişi kaydet</button></div></div></div></div>`;
 };
 
 V.stockin=()=>{
@@ -273,21 +273,21 @@ V.stockin=()=>{
 
 V.sales=()=>{
   const rows=[...S.sales.map(s=>({t:"s",no:s.no,tarih:s.tarih,ad:s.musteri,o:s})),...S.iades.map(i=>({t:"i",no:i.no,tarih:i.tarih,ad:i.musteri,o:i}))].sort((a,b)=>b.tarih.localeCompare(a.tarih)||b.no.localeCompare(a.no));
-  return `<h1>Satışlar</h1><div class="sub">Satış ve iade faturalarının arşivi. Fatura numarası sıralıdır; iptal edilen fatura silinmez, iptal olarak kalır.</div>
+  return `<h1>Satışlar</h1><div class="sub">Satış ve iade fişlerinin arşivi. Fiş numarası sıralıdır; iptal edilen fiş silinmez, iptal olarak kalır.</div>
   <div class="panel tw"><table><tr><th>No</th><th>Tür</th><th>Tarih</th><th>Müşteri</th><th class="n">Tutar</th><th class="n">Kalan</th><th>Durum</th><th></th></tr>
-  ${rows.map(r=>r.t==="s"?`<tr><td>${r.no}</td><td>Satış</td><td>${fd(r.tarih)}</td><td>${esc(r.ad)}</td><td class="n">${money(total(r.o))}</td><td class="n">${money(rest(r.o))}</td><td>${saleBadge(r.o)}</td><td class="n"><button class="btn s sm" onclick="doc('${r.no}')">Fatura</button> ${r.o.iptal?"":`<button class="btn s sm" onclick="returnModal('${r.no}')">İade</button> <button class="btn d sm" onclick="cancelSale('${r.no}')">İptal</button>`}</td></tr>`
-   :`<tr><td>${r.no}</td><td>İade</td><td>${fd(r.tarih)}</td><td>${esc(r.ad)}<div class="muted">Bağlı fatura: ${r.o.satisNo}</div></td><td class="n neg">-${money(iadeTotal(r.o))}</td><td class="n">-</td><td><span class="b warn">İade</span></td><td class="n"><button class="btn s sm" onclick="doc('${r.no}')">Fatura</button></td></tr>`).join("")}</table></div>`;
+  ${rows.map(r=>r.t==="s"?`<tr><td>${r.no}</td><td>Satış</td><td>${fd(r.tarih)}</td><td>${esc(r.ad)}</td><td class="n">${money(total(r.o))}</td><td class="n">${money(rest(r.o))}</td><td>${saleBadge(r.o)}</td><td class="n"><button class="btn s sm" onclick="doc('${r.no}')">Fiş</button> ${r.o.iptal?"":`<button class="btn s sm" onclick="returnModal('${r.no}')">İade</button> <button class="btn d sm" onclick="cancelSale('${r.no}')">İptal</button>`}</td></tr>`
+   :`<tr><td>${r.no}</td><td>İade</td><td>${fd(r.tarih)}</td><td>${esc(r.ad)}<div class="muted">Bağlı fiş: ${r.o.satisNo}</div></td><td class="n neg">-${money(iadeTotal(r.o))}</td><td class="n">-</td><td><span class="b warn">İade</span></td><td class="n"><button class="btn s sm" onclick="doc('${r.no}')">Fiş</button></td></tr>`).join("")}</table></div>`;
 };
 
 V.cari=()=>{
   const q=norm(window._cq||"");
   const list=customers().filter(c=>!q||norm(c.ad).includes(q));
   const tb=list.reduce((a,c)=>a+Math.max(0,c.borc),0);
-  return `<h1>Cari (Müşteriler)</h1><div class="sub">Cari hesabı buradan elle açabilir ya da fatura keserken yeni isim yazarak otomatik açabilirsiniz. Bakiye = satışlar − iadeler − ödemeler.</div>
+  return `<h1>Cari (Müşteriler)</h1><div class="sub">Cari hesabı buradan elle açabilir ya da fiş keserken yeni isim yazarak otomatik açabilirsiniz. Bakiye = satışlar − iadeler − ödemeler.</div>
   <div class="cards"><div class="card"><div class="l">Cari hesap sayısı</div><div class="v">${list.length}</div></div><div class="card"><div class="l">Toplam açık alacak</div><div class="v">${money(tb)}</div></div></div>
   <div class="panel"><div class="row"><input class="grow" id="cq" placeholder="Müşteri ara..." value="${esc(window._cq||"")}" oninput="window._cq=this.value;keepFocus('cari','cq')"><button class="btn" onclick="customerForm()">+ Yeni cari hesap</button></div>
   <div class="tw"><table><tr><th>Müşteri</th><th>Telefon</th><th class="n">Net satış</th><th class="n">Ödenen</th><th class="n">Bakiye</th></tr>
-  ${list.map(c=>`<tr class="click" onclick="cariDetail('${enc(c.ad)}')"><td>${esc(c.ad)}<div class="muted">${c.adet} fatura</div></td><td>${esc(c.tel||"-")}</td><td class="n">${money(c.satis-c.iade)}</td><td class="n">${money(c.odenen-c.iadeOde)}</td><td class="n">${balText(c)}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Müşteri yok</td></tr>'}</table></div></div>`;
+  ${list.map(c=>`<tr class="click" onclick="cariDetail('${enc(c.ad)}')"><td>${esc(c.ad)}<div class="muted">${c.adet} fiş</div></td><td>${esc(c.tel||"-")}</td><td class="n">${money(c.satis-c.iade)}</td><td class="n">${money(c.odenen-c.iadeOde)}</td><td class="n">${balText(c)}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Müşteri yok</td></tr>'}</table></div></div>`;
 };
 
 V.reports=()=>{
@@ -300,20 +300,20 @@ V.reports=()=>{
   return `<h1>Gün Sonu Raporu</h1><div class="sub">Seçilen gün için satış, iade ve tahsilat.</div>
   <div class="panel noprint"><div class="row"><label>Gün <input type="date" value="${d}" onchange="window._rd=this.value;render()"></label>
   <button class="btn" onclick="csvDay('${d}')">Excel için indir (CSV)</button><button class="btn s" onclick="csvStock()">Tüm stok listesini indir</button><button class="btn s" onclick="window.print()">Yazdır</button></div></div>
-  <div class="cards"><div class="card"><div class="l">Satış faturası</div><div class="v">${sd.length}</div></div><div class="card"><div class="l">Toplam satış</div><div class="v">${money(ts)}</div></div><div class="card"><div class="l">İade</div><div class="v">${money(ti)}</div></div><div class="card"><div class="l">Net satış</div><div class="v">${money(ts-ti)}</div></div><div class="card"><div class="l">Tahsil edilen</div><div class="v">${money(tp)}</div></div></div>
-  <div class="cols"><div class="panel"><h2>Satış faturaları — ${fd(d)}</h2><div class="tw"><table><tr><th>No</th><th>Müşteri</th><th class="n">Tutar</th></tr>${sd.map(s=>`<tr><td>${s.no}</td><td>${esc(s.musteri)}</td><td class="n">${money(total(s))}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Bu gün satış yok</td></tr>'}</table></div>
-  ${id.length?`<h2 style="margin-top:14px">İade faturaları</h2><div class="tw"><table>${id.map(i=>`<tr><td>${i.no}</td><td>${esc(i.musteri)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}</table></div>`:""}</div>
+  <div class="cards"><div class="card"><div class="l">Satış fişi</div><div class="v">${sd.length}</div></div><div class="card"><div class="l">Toplam satış</div><div class="v">${money(ts)}</div></div><div class="card"><div class="l">İade</div><div class="v">${money(ti)}</div></div><div class="card"><div class="l">Net satış</div><div class="v">${money(ts-ti)}</div></div><div class="card"><div class="l">Tahsil edilen</div><div class="v">${money(tp)}</div></div></div>
+  <div class="cols"><div class="panel"><h2>Satış fişleri — ${fd(d)}</h2><div class="tw"><table><tr><th>No</th><th>Müşteri</th><th class="n">Tutar</th></tr>${sd.map(s=>`<tr><td>${s.no}</td><td>${esc(s.musteri)}</td><td class="n">${money(total(s))}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Bu gün satış yok</td></tr>'}</table></div>
+  ${id.length?`<h2 style="margin-top:14px">İade fişleri</h2><div class="tw"><table>${id.map(i=>`<tr><td>${i.no}</td><td>${esc(i.musteri)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}</table></div>`:""}</div>
   <div class="panel"><h2>Tahsilat yöntemine göre — ${fd(d)}</h2><div class="tw"><table><tr><th>Yöntem</th><th class="n">Tutar</th></tr>${byY.map(y=>`<tr><td>${y[0]}</td><td class="n">${money(y[1])}</td></tr>`).join("")}<tr><td><b>Toplam</b></td><td class="n"><b>${money(tp)}</b></td></tr></table></div>
   <h2 style="margin-top:14px">Tahsilatlar</h2><div class="tw"><table><tr><th>Müşteri</th><th>Yöntem</th><th class="n">Tutar</th></tr>${pays.map(o=>`<tr><td>${esc(o.musteri)}<div class="muted">${o.no}</div></td><td>${esc(o.yontem)}</td><td class="n">${money(o.tutar)}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Bu gün tahsilat yok</td></tr>'}</table></div></div></div>`;
 };
 
-function headHtml(title,no,tarih){return `<div class="head"><div><img src="${LOGO}" alt="Kayıranlar Otomotiv"><div>(örnek adres satırı)<br>Tel: (örnek) · Vergi No: (örnek)</div></div><div style="text-align:right"><h3>${title}</h3><div>Fatura No: <b>${no}</b><br>Tarih: ${fd(tarih)}</div></div></div>`}
+function headHtml(title,no,tarih){return `<div class="head"><div><img src="${LOGO}" alt="Kayıranlar Otomotiv"><div>(örnek adres satırı)<br>Tel: (örnek) · Vergi No: (örnek)</div></div><div style="text-align:right"><h3>${title}</h3><div>Fiş No: <b>${no}</b><br>Tarih: ${fd(tarih)}</div></div></div>`}
 V.doc=()=>{
   const no=window._doc,s=S.sales.find(x=>x.no===no),i=!s&&S.iades.find(x=>x.no===no);
   if(!s&&!i)return"";
-  const bar=`<div class="row noprint"><button class="btn s" onclick="go('sales')">← Geri</button><button class="btn" onclick="window.print()">A4 yazdır / PDF</button><button class="btn s" onclick="shareModal('${no}')">Paylaş</button>${s&&!s.iptal?`<button class="btn s" onclick="returnModal('${no}')">İade faturası oluştur</button>`:""}</div>`;
+  const bar=`<div class="row noprint"><button class="btn s" onclick="go('sales')">← Geri</button><button class="btn" onclick="window.print()">A4 yazdır / PDF</button><button class="btn s" onclick="shareModal('${no}')">Paylaş</button>${s&&!s.iptal?`<button class="btn s" onclick="returnModal('${no}')">İade fişi oluştur</button>`:""}</div>`;
   if(i){return bar+`<div class="sheet">${headHtml(DOC.iade,i.no,i.tarih)}
-   <div style="margin-bottom:14px">Sayın <b>${esc(i.musteri)}</b> · Bağlı satış faturası: <b>${i.satisNo}</b>${i.not?` · Not: ${esc(i.not)}`:""}</div>
+   <div style="margin-bottom:14px">Sayın <b>${esc(i.musteri)}</b> · Bağlı satış fişi: <b>${i.satisNo}</b>${i.not?` · Not: ${esc(i.not)}`:""}</div>
    <table><tr><th>Kod</th><th>Ürün</th><th class="n">Adet</th><th class="n">Birim fiyat</th><th class="n">Tutar</th></tr>
    ${i.satirlar.map(l=>`<tr><td>${esc(prod(l.u).kod)}</td><td>${esc(prod(l.u).ad)}</td><td class="n">${l.adet}</td><td class="n">${money(l.birim)}</td><td class="n">${money(l.adet*l.birim)}</td></tr>`).join("")}</table>
    <div style="max-width:300px;margin-left:auto;margin-top:12px"><div class="tot g"><span>İADE TOPLAMI</span><span>${money(iadeTotal(i))}</span></div></div>
@@ -353,8 +353,8 @@ function setCart(i,k,v){v=Number(v);if(!(v>=0))return;if(k==="adet"&&v<1)v=1;car
 function saveSale(){
   const m=saleDraft.musteri.trim();
   if(!m)return alert("Lütfen müşteri adını yazın.");
-  if(!cart.length)return alert("Faturaya en az bir ürün ekleyin.");
-  if(!saleDraft.tarih)return alert("Fatura tarihini seçin.");
+  if(!cart.length)return alert("Fişe en az bir ürün ekleyin.");
+  if(!saleDraft.tarih)return alert("Fiş tarihini seçin.");
   for(const l of cart){if(l.adet>stok(l.u))return alert(`"${prod(l.u).ad}" için stok yetersiz (stok: ${stok(l.u)}).`)}
   const gt=r2(cart.reduce((a,l)=>a+lineNet(l),0)*(1-saleDraft.genelInd/100));
   let odenen=0;if(saleDraft.odeme==="odendi")odenen=gt;if(saleDraft.odeme==="kismi"){odenen=Number(saleDraft.tutar);if(!(odenen>0&&odenen<=gt))return alert("Alınan tutar 0'dan büyük ve genel toplamı geçmeyen bir değer olmalı.")}
@@ -362,9 +362,9 @@ function saveSale(){
   save();cart=[];saleDraft=newDraft();window._doc=s.no;view="doc";render();
 }
 function cancelSale(no){const s=S.sales.find(x=>x.no===no);if(!s||s.iptal)return;
-  if(iadeOf(s)>0)return alert("Bu faturaya bağlı iade var; iptal edilemez.");
-  if(!confirm(`${no} numaralı fatura iptal edilsin mi? Ürünler stoğa geri eklenir, fatura silinmez.`))return;
-  s.iptal=true;s.satirlar.forEach(l=>addMov(l.u,"İptal",l.adet,s.musteri+" (fatura iptali)",no,todayStr(),S.user));save();render()}
+  if(iadeOf(s)>0)return alert("Bu fişe bağlı iade var; iptal edilemez.");
+  if(!confirm(`${no} numaralı fiş iptal edilsin mi? Ürünler stoğa geri eklenir, fiş silinmez.`))return;
+  s.iptal=true;s.satirlar.forEach(l=>addMov(l.u,"İptal",l.adet,s.musteri+" (fiş iptali)",no,todayStr(),S.user));save();render()}
 function doc(no){window._doc=no;view="doc";closeModal();render()}
 function saveIn(){const a=Number(document.getElementById("ia").value);if(!(a>=1))return alert("Adet 1 veya daha büyük olmalı.");
   addMov(inSel,"Ürün Girişi",a,document.getElementById("ik").value.trim()||"Ürün girişi","",todayStr(),S.user);save();inSel=null;inQ="";render()}
@@ -372,13 +372,13 @@ function saveIn(){const a=Number(document.getElementById("ia").value);if(!(a>=1)
 function returnModal(no){
   const s=S.sales.find(x=>x.no===no);if(!s||s.iptal)return;
   const rows=s.satirlar.map((l,i)=>({l,i,max:l.adet-returnedQty(s,l.u)}));
-  if(!rows.some(r=>r.max>0))return alert("Bu faturadaki tüm ürünler zaten iade edilmiş.");
-  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">İade faturası oluştur</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
-  <div class="muted">Bağlı fatura: ${s.no} · ${esc(s.musteri)}. İade edilen ürünler stoğa geri eklenir, tutar müşterinin cari hesabından düşer. İade, satıştaki indirimli fiyat üzerinden hesaplanır.</div>
+  if(!rows.some(r=>r.max>0))return alert("Bu fişteki tüm ürünler zaten iade edilmiş.");
+  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">İade fişi oluştur</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
+  <div class="muted">Bağlı fiş: ${s.no} · ${esc(s.musteri)}. İade edilen ürünler stoğa geri eklenir, tutar müşterinin cari hesabından düşer. İade, satıştaki indirimli fiyat üzerinden hesaplanır.</div>
   <div class="tw" style="margin-top:12px"><table><tr><th>Ürün</th><th class="n">Satılan</th><th class="n">Daha önce iade</th><th class="n">İade adedi</th></tr>
   ${rows.map(r=>`<tr><td>${esc(prod(r.l.u).ad)}</td><td class="n">${r.l.adet}</td><td class="n">${r.l.adet-r.max}</td><td class="n">${r.max>0?`<input type="number" min="0" max="${r.max}" value="0" id="r_${r.i}" style="width:70px">`:'<span class="muted">-</span>'}</td></tr>`).join("")}</table></div>
   <label class="muted" style="display:block;margin-top:12px">İade nedeni (isteğe bağlı)<input id="r_not" style="width:100%;margin-top:4px"></label>
-  <div style="margin-top:14px;text-align:right"><button class="btn" onclick="doReturn('${s.no}')">İade faturasını kaydet</button></div>`);
+  <div style="margin-top:14px;text-align:right"><button class="btn" onclick="doReturn('${s.no}')">İade fişini kaydet</button></div>`);
 }
 function doReturn(no){
   const s=S.sales.find(x=>x.no===no),items=[];
@@ -398,17 +398,17 @@ function shareText(no){
 }
 function shareModal(no){
   const t=shareText(no),canNative=!!navigator.share;
-  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">Faturayı paylaş</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
+  modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">Fişi paylaş</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
   <pre style="white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;font:inherit">${esc(t)}</pre>
   ${canNative?`<button class="btn shbtn" onclick="nativeShare('${no}')">Telefonda paylaş…</button>`:""}
   <a class="btn s shbtn" style="text-decoration:none;display:block" target="_blank" rel="noopener" href="https://wa.me/?text=${enc(t)}">WhatsApp ile gönder</a>
-  <a class="btn s shbtn" style="text-decoration:none;display:block" href="mailto:?subject=${enc("Fatura "+no)}&body=${enc(t)}">E-posta ile gönder</a>
+  <a class="btn s shbtn" style="text-decoration:none;display:block" href="mailto:?subject=${enc("Fiş "+no)}&body=${enc(t)}">E-posta ile gönder</a>
   <button class="btn s shbtn" onclick="copyText('${no}')">Metni kopyala</button>
-  <div class="muted">Demoda fatura özeti metin olarak paylaşılır. Gerçek sistemde fatura PDF dosyası olarak gönderilir.</div>`);
+  <div class="muted">Demoda fiş özeti metin olarak paylaşılır. Gerçek sistemde fiş PDF dosyası olarak gönderilir.</div>`);
 }
-function nativeShare(no){navigator.share({title:"Fatura "+no,text:shareText(no)}).catch(()=>{})}
+function nativeShare(no){navigator.share({title:"Fiş "+no,text:shareText(no)}).catch(()=>{})}
 function copyText(no){const t=shareText(no);
-  const done=()=>alert("Fatura özeti kopyalandı.");
+  const done=()=>alert("Fiş özeti kopyalandı.");
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done));else fallbackCopy(t,done)}
 function fallbackCopy(t,done){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(e){prompt("Kopyalamak için Ctrl+C",t)}a.remove()}
 
@@ -418,7 +418,7 @@ function detail(id){
   <div class="muted">${esc(p.kod)} · ${esc(p.kat)} · ${esc(p.marka)} · Raf ${esc(p.raf)}</div>
   <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Stok</div><div class="v ${s<=p.min?"neg":""}">${s}</div></div><div class="card"><div class="l">Liste fiyatı</div><div class="v">${money(p.fiyat)}</div></div><div class="card"><div class="l">Alt sınır</div><div class="v">${p.min}</div></div></div>
   ${ls?`<div class="last"><b>Son satış:</b> ${fd(ls.tarih)} · ${esc(ls.musteri)} · ${ls.adet} adet · birim ${money(ls.fiyat)} (indirim sonrası)</div>`:'<div class="last">Bu ürün henüz satılmadı.</div>'}
-  <h2>Ürün geçmişi</h2><div class="tw"><table><tr><th>Tarih</th><th>Hareket</th><th class="n">Adet</th><th>Kime / nereden</th><th>Fatura</th><th>Kaydeden</th></tr>
+  <h2>Ürün geçmişi</h2><div class="tw"><table><tr><th>Tarih</th><th>Hareket</th><th class="n">Adet</th><th>Kime / nereden</th><th>Fiş</th><th>Kaydeden</th></tr>
   ${h.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(m.tip)}</td><td class="n ${m.adet>0?"pos":"neg"}">${m.adet>0?"+":""}${m.adet}</td><td>${esc(m.kim)}</td><td>${esc(m.belge||"-")}</td><td>${esc(m.kul)}</td></tr>`).join("")}</table></div>`);
 }
 function productForm(){
@@ -464,10 +464,10 @@ function cariDetail(e){
   modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(ad)}</h2><span><button class="btn s sm" onclick="customerForm('${enc(ad)}')">Bilgileri düzenle</button> <button class="btn s sm" onclick="closeModal()">Kapat</button></span></div>
   <div class="muted">${esc(c.tel||"Telefon yok")} · ${esc(c.adres||"Adres yok")}${c.vergi?" · "+esc(c.vergi):""}${c.not?" · "+esc(c.not):""}</div>
   <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Net satış (iade düşülmüş)</div><div class="v">${money(c.satis-c.iade)}</div></div><div class="card"><div class="l">Ödenen</div><div class="v">${money(c.odenen-c.iadeOde)}</div></div><div class="card"><div class="l">Bakiye</div><div class="v">${c.borc>0?`<span class="neg">Borcu ${money(c.borc)}</span>`:c.borc<0?`<span class="pos">Alacağı ${money(-c.borc)}</span>`:'<span class="pos">Borcu yok</span>'}</div></div></div>
-  ${open.length?`<div class="panel" style="background:var(--bg)"><h2>Ödeme al</h2><div class="grid2"><label>Hangi fatura<select id="p_no">${open.map(s=>`<option value="${s.no}">${s.no} · kalan ${money(rest(s))}</option>`).join("")}</select></label><label>Tutar (₺)<input id="p_t" type="number" min="0" step="0.01"></label><label>Ödeme tarihi<input id="p_d" type="date" value="${todayStr()}"></label><label>Yöntem<select id="p_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addPay('${enc(ad)}')">Ödemeyi kaydet</button></div></div>`:""}
+  ${open.length?`<div class="panel" style="background:var(--bg)"><h2>Ödeme al</h2><div class="grid2"><label>Hangi fiş<select id="p_no">${open.map(s=>`<option value="${s.no}">${s.no} · kalan ${money(rest(s))}</option>`).join("")}</select></label><label>Tutar (₺)<input id="p_t" type="number" min="0" step="0.01"></label><label>Ödeme tarihi<input id="p_d" type="date" value="${todayStr()}"></label><label>Yöntem<select id="p_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addPay('${enc(ad)}')">Ödemeyi kaydet</button></div></div>`:""}
   ${c.borc<0?`<div class="panel" style="background:var(--bg)"><h2>Müşteriye para iadesi yap</h2><div class="grid2"><label>Tutar (₺)<input id="rf_t" type="number" min="0" step="0.01" value="${-c.borc}"></label><label>Yöntem<select id="rf_y">${YONTEM.map(y=>`<option>${y}</option>`).join("")}</select></label></div><div style="margin-top:10px"><button class="btn" onclick="addRefund('${enc(ad)}')">Para iadesini kaydet</button></div></div>`:""}
-  <h2>Satışlar ve ödemeler</h2><div class="tw"><table><tr><th>Fatura</th><th>Tarih</th><th class="n">Toplam</th><th>Ödemeler (tarih · tutar · yöntem)</th><th class="n">Kalan</th></tr>
-  ${sales.map(s=>`<tr><td>${s.no}</td><td>${fd(s.tarih)}</td><td class="n">${money(total(s))}${iadeOf(s)?`<div class="muted">iade -${money(iadeOf(s))}</div>`:""}</td><td>${s.odemeler.map(o=>`${fd(o.tarih)} · ${money(o.tutar)} <span class="muted">(${esc(o.yontem)})</span>`).join("<br>")||'<span class="muted">Ödeme yok</span>'}</td><td class="n ${rest(s)>0?"neg":""}">${money(rest(s))}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Henüz fatura yok</td></tr>'}</table></div>
+  <h2>Satışlar ve ödemeler</h2><div class="tw"><table><tr><th>Fiş</th><th>Tarih</th><th class="n">Toplam</th><th>Ödemeler (tarih · tutar · yöntem)</th><th class="n">Kalan</th></tr>
+  ${sales.map(s=>`<tr><td>${s.no}</td><td>${fd(s.tarih)}</td><td class="n">${money(total(s))}${iadeOf(s)?`<div class="muted">iade -${money(iadeOf(s))}</div>`:""}</td><td>${s.odemeler.map(o=>`${fd(o.tarih)} · ${money(o.tutar)} <span class="muted">(${esc(o.yontem)})</span>`).join("<br>")||'<span class="muted">Ödeme yok</span>'}</td><td class="n ${rest(s)>0?"neg":""}">${money(rest(s))}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Henüz fiş yok</td></tr>'}</table></div>
   ${iades.length||refs.length?`<h2 style="margin-top:14px">İadeler</h2><div class="tw"><table>${iades.map(i=>`<tr><td>${i.no}</td><td>${fd(i.tarih)}</td><td class="n neg">-${money(iadeTotal(i))}</td></tr>`).join("")}${refs.map(f=>`<tr><td>Para iadesi</td><td>${fd(f.tarih)} · ${esc(f.yontem)}</td><td class="n">${money(f.tutar)}</td></tr>`).join("")}</table></div>`:""}
   <div style="margin-top:12px"><button class="btn s" onclick="statement('${enc(ad)}')">Cari ekstre yazdır</button></div>`);
 }
@@ -490,7 +490,7 @@ function statement(e){
 }
 function download(name,rows){const csv="﻿"+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")).join("\r\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
-function csvDay(d){const rows=[["Tür","Tarih","Fatura no","Müşteri","Tutar","Ödeme yöntemi"]];
+function csvDay(d){const rows=[["Tür","Tarih","Fiş no","Müşteri","Tutar","Ödeme yöntemi"]];
   S.sales.filter(s=>s.tarih===d&&!s.iptal).forEach(s=>rows.push(["Satış",fd(s.tarih),s.no,s.musteri,total(s),""]));
   S.iades.filter(i=>i.tarih===d).forEach(i=>rows.push(["İade",fd(i.tarih),i.no,i.musteri,-iadeTotal(i),""]));
   S.sales.forEach(s=>{if(s.iptal)return;s.odemeler.filter(o=>o.tarih===d).forEach(o=>rows.push(["Tahsilat",fd(o.tarih),s.no,s.musteri,o.tutar,o.yontem]))});
