@@ -179,10 +179,10 @@ function createSale(musteri,tarih,lines,odenen,odemeTarih,kul,opts){
 function createReturn(satisNo,items,not,kul,tarih){
   const s=S.sales.find(x=>x.no===satisNo);S.seqR++;
   const no="IAD-"+new Date().getFullYear()+"-"+String(S.seqR).padStart(4,"0");
-  const satirlar=items.map(it=>({u:it.u,adet:it.adet,birim:netUnit(s,s.satirlar.find(l=>l.u===it.u))}));
+  const satirlar=items.map(it=>({u:it.u,adet:it.adet,birim:netUnit(s,s.satirlar.find(l=>l.u===it.u)),hatali:!!it.hatali}));
   const iade={no,satisNo,tarih,musteri:s.musteri,satirlar,not:not||"",kul};
   S.iades.push(iade);
-  satirlar.forEach(l=>addMov(l.u,"İade",l.adet,s.musteri+" (iade)",no,tarih,kul));
+  satirlar.forEach(l=>{addMov(l.u,"İade",l.adet,s.musteri+" (iade)",no,tarih,kul);if(l.hatali)addMov(l.u,"Düzeltme",-l.adet,"Hatalı ürün, stoğa alınmadı",no,tarih,kul)});
   return iade;
 }
 function saleBadge(s){if(s.iptal)return'<span class="b">İptal</span>';const r=rest(s);const x=iadeOf(s)>0?' <span class="b warn">İadeli</span>':"";
@@ -318,7 +318,7 @@ V.doc=()=>{
   if(i){return bar+`<div class="sheet">${headHtml(DOC.iade,i.no,i.tarih)}
    <div style="margin-bottom:14px">Sayın <b>${esc(i.musteri)}</b> · Bağlı satış fişi: <b>${i.satisNo}</b>${i.not?` · Not: ${esc(i.not)}`:""}</div>
    <table><tr><th>Kod</th><th>Ürün</th><th class="n">Adet</th><th class="n">Birim Fiyat</th><th class="n">Tutar</th></tr>
-   ${i.satirlar.map(l=>`<tr><td>${esc(prod(l.u).kod)}</td><td>${esc(prod(l.u).ad)}</td><td class="n">${l.adet}</td><td class="n">${money(l.birim)}</td><td class="n">${money(l.adet*l.birim)}</td></tr>`).join("")}</table>
+   ${i.satirlar.map(l=>`<tr><td>${esc(prod(l.u).kod)}</td><td>${esc(prod(l.u).ad)}${l.hatali?" (hatalı, stoğa alınmadı)":""}</td><td class="n">${l.adet}</td><td class="n">${money(l.birim)}</td><td class="n">${money(l.adet*l.birim)}</td></tr>`).join("")}</table>
    <div style="max-width:300px;margin-left:auto;margin-top:12px"><div class="tot g"><span>İADE TOPLAMI</span><span>${money(iadeTotal(i))}</span></div></div>
    <div class="stamp"><div>Teslim eden<br><br>Kaşe / İmza</div><div style="text-align:right">Teslim alan<br><br>İmza</div></div>
    <div style="margin-top:30px;font-size:11px;color:#777">Demo şablon: firma bilgileri ve başlık müşteri ile birlikte netleştirilecek.</div></div>`}
@@ -377,16 +377,16 @@ function returnModal(no){
   const rows=s.satirlar.map((l,i)=>({l,i,max:l.adet-returnedQty(s,l.u)}));
   if(!rows.some(r=>r.max>0))return alert("Bu fişteki tüm ürünler zaten iade edilmiş.");
   modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">İade Fişi Oluştur</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
-  <div class="muted">Bağlı fiş: ${s.no} · ${esc(s.musteri)}. İade edilen ürünler stoğa geri eklenir, tutar müşterinin cari hesabından düşer. İade, satıştaki indirimli fiyat üzerinden hesaplanır.</div>
-  <div class="tw" style="margin-top:12px"><table><tr><th>Ürün</th><th class="n">Satılan</th><th class="n">Daha Önce İade</th><th class="n">İade Adedi</th></tr>
-  ${rows.map(r=>`<tr><td>${esc(prod(r.l.u).ad)}</td><td class="n">${r.l.adet}</td><td class="n">${r.l.adet-r.max}</td><td class="n">${r.max>0?`<input type="number" min="0" max="${r.max}" value="0" id="r_${r.i}" style="width:70px">`:'<span class="muted">-</span>'}</td></tr>`).join("")}</table></div>
+  <div class="muted">Bağlı fiş: ${s.no} · ${esc(s.musteri)}. İade edilen ürünler stoğa geri eklenir (hatalı işaretlenenler eklenmez), tutar müşterinin cari hesabından düşer. İade, satıştaki indirimli fiyat üzerinden hesaplanır.</div>
+  <div class="tw" style="margin-top:12px"><table><tr><th>Ürün</th><th class="n">Satılan</th><th class="n">Daha Önce İade</th><th class="n">İade Adedi</th><th>Hatalı / Hasarlı</th></tr>
+  ${rows.map(r=>`<tr><td>${esc(prod(r.l.u).ad)}</td><td class="n">${r.l.adet}</td><td class="n">${r.l.adet-r.max}</td><td class="n">${r.max>0?`<input type="number" min="0" max="${r.max}" value="0" id="r_${r.i}" style="width:70px">`:'<span class="muted">-</span>'}</td><td>${r.max>0?`<label style="font-size:12px"><input type="checkbox" id="rh_${r.i}"> Stoğa girmesin</label>`:""}</td></tr>`).join("")}</table></div>
   <label class="muted" style="display:block;margin-top:12px">İade Nedeni (İsteğe Bağlı)<input id="r_not" style="width:100%;margin-top:4px"></label>
   <div style="margin-top:14px;text-align:right"><button class="btn" onclick="doReturn('${s.no}')">İade Fişini Kaydet</button></div>`);
 }
 function doReturn(no){
   const s=S.sales.find(x=>x.no===no),items=[];
   s.satirlar.forEach((l,i)=>{const e=document.getElementById("r_"+i);if(!e)return;const a=Number(e.value),max=l.adet-returnedQty(s,l.u);
-    if(a>max){items.error=`"${prod(l.u).ad}" için en fazla ${max} adet iade edilebilir.`}else if(a>0)items.push({u:l.u,adet:a})});
+    if(a>max){items.error=`"${prod(l.u).ad}" için en fazla ${max} adet iade edilebilir.`}else if(a>0)items.push({u:l.u,adet:a,hatali:!!(document.getElementById("rh_"+i)||{}).checked})});
   if(items.error)return alert(items.error);
   if(!items.length)return alert("İade edilecek en az bir ürün için adet girin.");
   const i=createReturn(no,items,document.getElementById("r_not").value.trim(),S.user,todayStr());
