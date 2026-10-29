@@ -97,6 +97,7 @@ const newDraft=()=>({musteri:"",tarih:todayStr(),odeme:"odendi",tutar:"",yontem:
 let S, view="dash", cart=[], saleDraft=newDraft(), hitQ="", inQ="", inSel=null;
 
 const CATS=["Fren","Süspansiyon","Motor","Kayış ve Zincir","Filtre","Elektrik","Yağ ve Sıvılar"];
+const catList=()=>[...new Set([...CATS,...S.products.map(p=>p.kat)])];
 const SEED=[
 ["FR-0101","Fiat Egea Fren Diski - Düz (çift)","Fren","Bosch","A-01-2",12,4,1450],
 ["FR-0102","Fiat Egea Fren Diski - Kareli (çift)","Fren","TRW","A-01-3",3,4,1890],
@@ -225,7 +226,7 @@ V.products=()=>{
   return `<h1>Ürünler</h1><div class="sub">İsim, kod, marka ya da raf numarasıyla ara. Satıra tıklayınca ürün geçmişi açılır.</div>
   <div class="panel"><div class="row noprint">
    <input class="grow" id="pq" placeholder="Ara: egea fren, MT-0301, Bosch, A-01..." value="${esc(window._pq||"")}" oninput="window._pq=this.value;keepFocus('products','pq')">
-   <select onchange="window._pc=this.value;render()"><option value="">Tüm kategoriler</option>${CATS.map(c=>`<option ${cat===c?"selected":""}>${c}</option>`).join("")}</select>
+   <select onchange="window._pc=this.value;render()"><option value="">Tüm kategoriler</option>${catList().map(c=>`<option ${cat===c?"selected":""}>${c}</option>`).join("")}</select>
    <label><input type="checkbox" ${low?"checked":""} onchange="window._pl=this.checked;render()"> Sadece kritik</label>
    <button class="btn" onclick="productForm()">+ Yeni Ürün</button></div>
   <div class="tw"><table><tr><th>Kod</th><th>Ürün</th><th>Kategori</th><th>Raf</th><th class="n">Fiyat</th><th class="n">Stok</th></tr>
@@ -424,7 +425,8 @@ function detail(id){
 function productForm(){
   modal(`<h2>Yeni Ürün</h2><div class="grid2">
   <label>Stok Kodu<input id="f_kod"></label><label>Ürün Adı<input id="f_ad" placeholder="Örn. Fiat Egea Fren Diski - Düz"></label>
-  <label>Kategori<select id="f_kat">${CATS.map(c=>`<option>${c}</option>`).join("")}</select></label><label>Marka<input id="f_marka"></label>
+  <label>Kategori<select id="f_kat">${catList().map(c=>`<option>${c}</option>`).join("")}</select></label><label>Marka<input id="f_marka"></label>
+  <label style="grid-column:1/-1">Yeni Kategori (Listede Yoksa)<input id="f_yenikat" placeholder="Doldurursanız seçili kategorinin yerine bu kategori eklenir"></label>
   <label>Raf No<input id="f_raf" placeholder="A-01-2"></label><label>Liste Fiyatı (₺)<input id="f_fiyat" type="number" min="0" step="0.01"></label>
   <label>Kritik Stok Alt Sınırı (Zorunlu)<input id="f_min" type="number" min="0" step="1" placeholder="Adet girin"></label><label>Açılış Stoğu (Adet)<input id="f_stok" type="number" min="0" value="0"></label></div>
   <div style="margin-top:14px;text-align:right"><button class="btn s" onclick="closeModal()">Vazgeç</button> <button class="btn" onclick="saveProduct()">Kaydet</button></div>`);
@@ -437,7 +439,7 @@ function saveProduct(){
   const mn=g("f_min");
   if(mn===""||!(Number(mn)>=0))return alert("Kritik stok alt sınırı zorunlu: 0 ya da daha büyük bir adet girin.");
   const id=S.nextProd++;
-  S.products.push({id,kod,ad,kat:g("f_kat"),marka:g("f_marka")||"-",raf:g("f_raf")||"-",min:Number(mn),fiyat:Number(g("f_fiyat"))||0});
+  S.products.push({id,kod,ad,kat:g("f_yenikat")||g("f_kat"),marka:g("f_marka")||"-",raf:g("f_raf")||"-",min:Number(mn),fiyat:Number(g("f_fiyat"))||0});
   const st=Number(g("f_stok"));if(st>0)addMov(id,"Açılış",st,"Elle açılış kaydı","",todayStr(),S.user);
   save();closeModal();render();
 }
