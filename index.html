@@ -72,6 +72,7 @@ td.n,th.n{text-align:right;white-space:nowrap}
   <button class="nav" data-v="products">Ürünler</button>
   <button class="nav" data-v="sale">Yeni Satış</button>
   <button class="nav" data-v="stockin">Ürün Girişi</button>
+  <button class="nav" data-v="orders">Siparişler</button>
   <button class="nav" data-v="sales">Satışlar</button>
   <button class="nav" data-v="cari">Cari (Müşteriler)</button>
   <button class="nav" data-v="reports">Raporlar</button>
@@ -97,6 +98,7 @@ const YONTEM=["Nakit","Çek","Havale","Kredi Kartı"], IND=[0,10,20,30];
 const DOC={satis:"SATIŞ FİŞİ",iade:"İADE FİŞİ"};
 const newDraft=()=>({musteri:"",tarih:todayStr(),odeme:"odendi",tutar:"",yontem:"Nakit",not:"",genelInd:0});
 let S, view="dash", cart=[], saleDraft=newDraft(), hitQ="", inQ="", inSel=null;
+let ordTab="Bekliyor", ordDraft=null, ordQ="", ordNew=false, ordNewD={kod:"",ad:"",min:"0"};
 
 const CATS=["Fren","Süspansiyon","Motor","Kayış ve Zincir","Filtre","Elektrik","Yağ ve Sıvılar"];
 const catList=()=>[...new Set([...CATS,...S.products.map(p=>p.kat)])];
@@ -127,7 +129,7 @@ const SEED=[
 ["YG-0603","Fren Hidroliği DOT4 500 ml","Yağ ve Sıvılar","Bosch","F-02-1",19,6,170]];
 
 function seed(){
-  S={user:"Kullanıcı 1",seq:0,seqR:0,nextProd:1,nextMov:1,products:[],mov:[],sales:[],iades:[],customers:[],refunds:[],advances:[]};
+  S={user:"Kullanıcı 1",seq:0,seqR:0,nextProd:1,nextMov:1,products:[],mov:[],sales:[],iades:[],customers:[],refunds:[],advances:[],orders:[],nextOrd:1};
   SEED.forEach(r=>{const id=S.nextProd++;S.products.push({id,kod:r[0],ad:r[1],kat:r[2],marka:r[3],raf:r[4],min:r[6],fiyat:r[7]});
     addMov(id,"Açılış",r[5],"Sayım / açılış kaydı","",offs(-20),"Kullanıcı 1")});
   const pid=k=>S.products.find(p=>p.kod===k).id;
@@ -139,10 +141,13 @@ function seed(){
   const c=createSale("Çınar Oto Servis",offs(-1),[[pid("FL-0401"),10,140,0],[pid("YG-0601"),4,1250,0]],3000,offs(-1),"Kullanıcı 3",{genelInd:10,yontem:"Havale"});
   createReturn(c.no,[{u:pid("FL-0401"),adet:2}],"Yanlış model","Kullanıcı 3",todayStr());
   createSale("Selin Aydın",todayStr(),[[pid("SP-0203"),1,380,0],[pid("FL-0403"),2,210,0]],800,todayStr(),"Kullanıcı 2",{yontem:"Kredi Kartı"});
+  createOrder(offs(-1),"Örnek Oto Yedek Ltd.",[[pid("SP-0203"),6],[pid("SP-0202"),4]],"Kullanıcı 1",offs(-8));
+  createOrder(offs(2),"Yağ ve filtre siparişi",[[pid("FL-0403"),20],[pid("YG-0602"),12]],"Kullanıcı 2",offs(-3));
+  createOrder(offs(12),"",[[pid("FR-0102"),8]],"Kullanıcı 1",offs(-1));
   save();
 }
 function migrate(){
-  S.customers=S.customers||[];S.iades=S.iades||[];S.refunds=S.refunds||[];S.advances=S.advances||[];S.seqR=S.seqR||0;
+  S.customers=S.customers||[];S.iades=S.iades||[];S.refunds=S.refunds||[];S.advances=S.advances||[];S.seqR=S.seqR||0;S.orders=S.orders||[];S.nextOrd=S.nextOrd||1;
   S.mov.forEach(m=>{if(m.tip==="Mal Girişi")m.tip="Ürün Girişi"});
   S.sales.forEach(s=>{s.odemeler.forEach(o=>{if(o.yontem==="Kart")o.yontem="Kredi Kartı"});s.genelInd=s.genelInd||0;s.satirlar.forEach(l=>l.ind=l.ind||0)});
 }
@@ -209,7 +214,7 @@ V.dash=()=>{
   const ts=S.sales.filter(s=>!s.iptal&&s.tarih===today).reduce((a,s)=>a+total(s),0)-S.iades.filter(i=>i.tarih===today).reduce((a,i)=>a+iadeTotal(i),0);
   const open=customers().reduce((a,c)=>a+Math.max(0,c.borc),0);
   const lastMov=[...S.mov].reverse().slice(0,7);
-  return `<h1>Ana Sayfa</h1><div class="sub">Bugün: ${fd(today)}</div>
+  return `<h1>Ana Sayfa</h1><div class="sub">Bugün: ${fd(today)}</div>${ordAlert()}
   <div class="cards">
    <div class="card"><div class="l">Ürün Çeşidi</div><div class="v">${S.products.length}</div></div>
    <div class="card"><div class="l">Toplam Stok Adedi</div><div class="v">${adet}</div></div>
@@ -313,6 +318,57 @@ V.reports=()=>{
   <h2 style="margin-top:14px">Tahsilatlar</h2><div class="tw"><table><tr><th>Müşteri</th><th>Yöntem</th><th class="n">Tutar</th></tr>${pays.map(o=>`<tr><td>${esc(o.musteri)}<div class="muted">${o.no}</div></td><td>${esc(o.yontem)}</td><td class="n">${money(o.tutar)}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Bu gün tahsilat yok</td></tr>'}</table></div></div></div>`;
 };
 
+/* ---------- siparişler ---------- */
+const dd=t=>Math.round((new Date(t)-new Date(todayStr()))/864e5);
+const ordBadge=t=>{const f=dd(t);return f<0?`<span class="b bad">${-f} gün gecikti</span>`:f===0?'<span class="b warn">Bugün</span>':f<=3?`<span class="b warn">${f} gün kaldı</span>`:`<span class="b">${f} gün kaldı</span>`};
+const ordRest=o=>o.kalemler.reduce((a,k)=>a+Math.max(0,k.adet-k.gelen),0);
+const ordText=o=>{const a=o.kalemler.map(k=>prod(k.u).ad);return a.slice(0,2).join(", ")+(a.length>2?` +${a.length-2}`:"")};
+function ordUnits(id){const r=[];S.orders.forEach(o=>{if(o.durum!=="Bekliyor")return;o.kalemler.forEach(k=>{if(k.u===id&&k.adet>k.gelen)r.push({kalan:k.adet-k.gelen,teslim:o.teslim})})});return r.length?{adet:r.reduce((a,x)=>a+x.kalan,0),teslim:r.map(x=>x.teslim).sort()[0]}:null}
+function createOrder(teslim,not,lines,kul,tarih){const id=S.nextOrd++;const o={id,no:"SP-"+id,tarih,teslim,not,durum:"Bekliyor",kul,kalemler:lines.map(l=>({u:l[0],adet:l[1],gelen:0}))};S.orders.push(o);return o}
+function ordAlert(){
+  const l=S.orders.filter(o=>o.durum==="Bekliyor"&&dd(o.teslim)<=3).sort((a,b)=>a.teslim.localeCompare(b.teslim)||a.id-b.id);
+  if(!l.length)return"";
+  return `<div class="panel" style="border:1px solid var(--warn);background:var(--warnbg)"><h2>Yaklaşan ve geciken siparişler</h2>${l.map(o=>`<div style="padding:4px 0">${ordBadge(o.teslim)} <a href="#" onclick="openOrder(${o.id});return false">${o.no}</a> · ${fd(o.teslim)} · ${esc(ordText(o))} <span class="muted">(${ordRest(o)} adet)</span></div>`).join("")}</div>`;
+}
+V.orders=()=>{
+  const tab=ordTab,list=S.orders.filter(o=>o.durum===tab).sort(tab==="Bekliyor"?(a,b)=>a.teslim.localeCompare(b.teslim)||a.id-b.id:(a,b)=>b.id-a.id);
+  return `<h1>Siparişler</h1><div class="sub">Tedarikçiden beklenen mallar. Mal gelince siparişi açıp "Teslim Al" ile stoğa ekleyin.</div>
+  <div class="panel"><div class="row">${[["Bekliyor","Bekleyen"],["Teslim alındı","Teslim alınan"],["İptal","İptal"]].map(t=>`<button class="btn ${tab===t[0]?"":"s"} sm" onclick="ordTab='${t[0]}';render()">${t[1]}</button>`).join(" ")}<span class="grow"></span><button class="btn" onclick="orderForm()">+ Yeni Sipariş</button></div>
+  <div class="tw"><table><tr><th>Sipariş</th><th>Teslimat</th><th>Ürünler</th><th class="n">${tab==="Bekliyor"?"Kalan adet":"Kalem"}</th><th>Not</th></tr>
+  ${list.map(o=>`<tr class="click" onclick="openOrder(${o.id})"><td>${o.no}<div class="muted">${fd(o.tarih)}</div></td><td>${fd(o.teslim)} ${tab==="Bekliyor"?ordBadge(o.teslim):""}</td><td>${esc(ordText(o))}</td><td class="n">${tab==="Bekliyor"?ordRest(o):o.kalemler.length}</td><td>${esc(o.not||"")}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Sipariş yok</td></tr>'}</table></div></div>`;
+};
+V.orderform=()=>{
+  const d=ordDraft,q=norm(ordQ);
+  const hits=q?S.products.filter(p=>norm(p.ad+" "+p.kod+" "+p.marka).includes(q)).sort((a,b)=>(stok(a.id)>0)-(stok(b.id)>0)).slice(0,8):[];
+  return `<h1>${d.id?"Sipariş Düzenle "+d.no:"Yeni Sipariş"}</h1><div class="sub">Tedarikçiden beklenen mal. Sipariş stoğa dokunmaz; mal gelince "Teslim Al" ile stoğa girer.</div>
+  <div class="cols s2"><div>
+   <div class="panel"><h2>1. Teslimat</h2><div class="grid2"><label>Teslimat Tarihi<input type="date" value="${d.teslim}" onchange="ordDraft.teslim=this.value"></label>
+    <label>Not (tedarikçi vb.)<input maxlength="300" value="${esc(d.not)}" oninput="ordDraft.not=this.value" placeholder="Örn. Örnek Oto Yedek Ltd."></label></div></div>
+   <div class="panel"><h2>2. Ürün Ekle</h2>
+    <input style="width:100%;margin-bottom:10px" id="oq" placeholder="Ürün adı, kodu ya da markası yazın..." value="${esc(ordQ)}" oninput="ordQ=this.value;keepFocus('orderform','oq')">
+    ${hits.length?`<div class="hits">${hits.map(p=>`<div class="hit" onclick="addOrdLine(${p.id})"><span>${esc(p.ad)}<div class="muted">${esc(p.kod)}</div></span><span class="right">${stok(p.id)<=0?'<span class="b bad">Stok yok</span>':'<span class="muted">Stok '+stok(p.id)+'</span>'}</span></div>`).join("")}</div>`:q?'<div class="muted">Eşleşen ürün yok. Aşağıdan yeni ürün ekleyebilirsiniz.</div>':""}
+    <div class="row" style="margin-top:8px"><button class="btn s sm" onclick="addBiten()">Stoğu bitenleri ekle</button><button class="btn s sm" onclick="ordNew=!ordNew;render()">Listede olmayan yeni ürün</button></div>
+    <div id="ordMsg" class="muted"></div>
+    ${ordNew?`<div class="panel" style="margin:10px 0 0"><div class="grid2"><label>Stok kodu<input value="${esc(ordNewD.kod)}" oninput="ordNewD.kod=this.value"></label><label>Ürün açıklaması<input value="${esc(ordNewD.ad)}" oninput="ordNewD.ad=this.value"></label>
+     <label>Kritik stok alt sınırı<input type="number" min="0" step="1" value="${esc(ordNewD.min)}" oninput="ordNewD.min=this.value"></label></div>
+     <div style="margin-top:10px"><button class="btn sm" onclick="saveOrdProduct()">Ürünü oluştur ve ekle</button></div>
+     <div class="muted" style="margin-top:6px">Ürün stok 0 ile açılır; mal gelince teslim alırken stoğa girer. Raf, fiyat gibi alanları sonra ürün kartından düzenleyebilirsiniz.</div></div>`:""}</div></div>
+  <div><div class="panel"><h2>3. Sipariş Kalemleri</h2>
+   ${d.lines.length?`<div class="tw"><table><tr><th>Ürün</th><th class="n">Adet</th><th></th></tr>${d.lines.map((l,i)=>`<tr><td>${esc(prod(l.u).ad)}<div class="muted ${stok(l.u)<=0?"neg":""}">${esc(prod(l.u).kod)} · Stok ${stok(l.u)}${stok(l.u)<=0?" (bitti)":""}</div></td><td class="n"><input type="number" min="1" style="width:80px" value="${l.adet}" onchange="setOrdLine(${i},this.value)"></td><td><button class="btn d sm" onclick="ordDraft.lines.splice(${i},1);render()">×</button></td></tr>`).join("")}</table></div>`:'<div class="empty">Henüz ürün eklenmedi</div>'}
+   <div style="margin-top:14px;text-align:right"><button class="btn s" onclick="go('orders')">Vazgeç</button> <button class="btn" onclick="saveOrder()">${d.id?"Değişiklikleri Kaydet":"Siparişi Kaydet"}</button></div></div></div></div>`;
+};
+V.orderdetail=()=>{
+  const o=S.orders.find(x=>x.id===window._ord);if(!o)return"";
+  const bek=o.durum==="Bekliyor",hic=o.kalemler.every(k=>k.gelen===0);
+  return `<h1>Sipariş ${o.no} <span class="b ${o.durum==="Teslim alındı"?"ok":o.durum==="İptal"?"":"warn"}">${o.durum}</span></h1>
+  <div class="sub">Sipariş tarihi: ${fd(o.tarih)} · Kaydeden: ${esc(o.kul)}<br>Teslimat: <b>${fd(o.teslim)}</b> ${bek?ordBadge(o.teslim):""}${o.not?`<br>Not: ${esc(o.not)}`:""}</div>
+  <div class="panel"><div class="row noprint"><button class="btn s" onclick="go('orders')">← Siparişler</button>${bek?`<button class="btn s" onclick="orderForm(${o.id})">Düzenle</button>${hic?`<button class="btn d" onclick="cancelOrder(${o.id})">İptal Et</button>`:""}`:""}</div>
+  ${bek?'<div class="muted" style="margin:8px 0">Malı kontrol edin; gelen adedi yazıp onaylayın. Eksik gelirse kalan sipariş bekler; kalan hiç gelmeyecekse "siparişi kapat"ı işaretleyin.</div>':""}
+  <div class="tw"><table><tr><th>Ürün</th><th class="n">Sipariş</th><th class="n">Gelen</th><th class="n">Kalan</th>${bek?"<th>Şimdi gelen</th>":""}</tr>
+  ${o.kalemler.map((k,i)=>`<tr><td>${esc(prod(k.u).ad)}<div class="muted">${esc(prod(k.u).kod)}</div></td><td class="n">${k.adet}</td><td class="n">${k.gelen}</td><td class="n">${Math.max(0,k.adet-k.gelen)}</td>${bek?`<td><input type="number" min="0" step="1" id="g_${i}" style="width:80px" value="${Math.max(0,k.adet-k.gelen)}"></td>`:""}</tr>`).join("")}</table></div>
+  ${bek?`<label style="display:block;margin:12px 0"><input type="checkbox" id="kapat"> Kalan gelmeyecek, siparişi kapat</label><button class="btn" onclick="receiveOrder(${o.id})">Teslim Al ve Stoğa Ekle</button>`:""}</div>`;
+};
+
 function headHtml(title,no,tarih){return `<div class="head"><div><img src="${LOGO}" alt="Kayıranlar Otomotiv"><div>(örnek adres satırı)<br>Tel: (örnek) · Vergi No: (örnek)</div></div><div style="text-align:right"><h3>${title}</h3><div>Fiş No: <b>${no}</b><br>Tarih: ${fd(tarih)}</div></div></div>`}
 V.doc=()=>{
   const no=window._doc,s=S.sales.find(x=>x.no===no),i=!s&&S.iades.find(x=>x.no===no);
@@ -341,7 +397,7 @@ V.doc=()=>{
 
 /* ---------- eylemler ---------- */
 function render(){
-  document.querySelectorAll(".side .nav").forEach(b=>b.classList.toggle("on",b.dataset.v===view||(view==="doc"&&b.dataset.v==="sales")));
+  document.querySelectorAll(".side .nav").forEach(b=>b.classList.toggle("on",b.dataset.v===view||(view==="doc"&&b.dataset.v==="sales")||((view==="orderform"||view==="orderdetail")&&b.dataset.v==="orders")));
   const demo=`<div class="demo noprint"><span><b>DEMO:</b> örnek verilerle çalışır, hiçbir şey sunucuya gitmez. Değişiklikler yalnızca bu tarayıcıda kalır.</span><button class="btn s sm" onclick="resetDemo()">Örnek Verileri Sıfırla</button></div>`;
   document.getElementById("main").innerHTML=demo+V[view]();
   document.getElementById("userSel").value=S.user;
@@ -375,6 +431,60 @@ function cancelSale(no){const s=S.sales.find(x=>x.no===no);if(!s||s.iptal)return
 function doc(no){window._doc=no;view="doc";closeModal();render()}
 function saveIn(){const a=Number(document.getElementById("ia").value);if(!(a>=1))return alert("Adet 1 veya daha büyük olmalı.");
   addMov(inSel,"Ürün Girişi",a,document.getElementById("ik").value.trim()||"Ürün girişi","",todayStr(),S.user);save();inSel=null;inQ="";render()}
+
+function openOrder(id){window._ord=id;view="orderdetail";closeModal();window.scrollTo(0,0);render()}
+function orderForm(id){
+  const o=id?S.orders.find(x=>x.id===id):null;
+  ordDraft=o?{id:o.id,no:o.no,teslim:o.teslim,not:o.not||"",lines:o.kalemler.map(k=>({u:k.u,adet:k.adet}))}:{id:0,no:"",teslim:offs(7),not:"",lines:[]};
+  ordQ="";ordNew=false;ordNewD={kod:"",ad:"",min:"0"};view="orderform";window.scrollTo(0,0);render();
+}
+function addOrdLine(u,adet){const ex=ordDraft.lines.find(l=>l.u===u);if(!ex)ordDraft.lines.push({u,adet:adet||1});else if(adet===undefined)ex.adet++;ordQ="";render()}
+function setOrdLine(i,v){v=Math.floor(Number(v));ordDraft.lines[i].adet=v>=1?v:1;render()}
+function addBiten(){
+  const l=S.products.filter(p=>stok(p.id)<=0),once=ordDraft.lines.length;
+  l.forEach(p=>{if(!ordDraft.lines.some(x=>x.u===p.id))ordDraft.lines.push({u:p.id,adet:1})});
+  const n=ordDraft.lines.length-once;render();
+  const m=document.getElementById("ordMsg");if(m)m.textContent=l.length?n+" ürün eklendi; adetleri sağdan düzenleyin.":"Stoğu biten ürün yok.";
+}
+function saveOrdProduct(){
+  const kod=ordNewD.kod.trim(),ad=ordNewD.ad.trim(),mn=String(ordNewD.min).trim();
+  if(!kod||!ad)return alert("Stok kodu ve ürün açıklaması zorunlu.");
+  if(S.products.some(p=>p.kod.toLowerCase()===kod.toLowerCase()))return alert("Bu stok koduyla kayıtlı bir ürün zaten var.");
+  if(mn===""||!(Number(mn)>=0))return alert("Kritik stok alt sınırı zorunlu: 0 ya da daha büyük bir adet girin.");
+  const id=S.nextProd++;S.products.push({id,kod,ad,kat:"Motor",marka:"-",raf:"-",min:Number(mn),fiyat:0});save();
+  ordNew=false;ordNewD={kod:"",ad:"",min:"0"};addOrdLine(id);
+}
+function saveOrder(){
+  const d=ordDraft;
+  if(!d.teslim)return alert("Teslimat tarihini seçin.");
+  if(!d.id&&d.teslim<todayStr())return alert("Teslimat tarihi bugünden önce olamaz.");
+  if(!d.lines.length)return alert("Siparişe en az bir ürün ekleyin.");
+  if(d.not.trim().length>300)return alert("Not en çok 300 karakter olabilir.");
+  if(!d.id){const o=createOrder(d.teslim,d.not.trim(),d.lines.map(l=>[l.u,l.adet]),S.user,todayStr());save();return openOrder(o.id)}
+  const o=S.orders.find(x=>x.id===d.id);
+  for(const k of o.kalemler){const n=d.lines.find(l=>l.u===k.u);
+    if(!n&&k.gelen>0)return alert(`"${prod(k.u).ad}" için ${k.gelen} adet teslim alınmış, kalem silinemez.`);
+    if(n&&n.adet<k.gelen)return alert(`"${prod(k.u).ad}" için ${k.gelen} adet teslim alınmış, adet bunun altına indirilemez.`)}
+  o.kalemler=o.kalemler.filter(k=>d.lines.some(l=>l.u===k.u));
+  o.kalemler.forEach(k=>k.adet=d.lines.find(l=>l.u===k.u).adet);
+  d.lines.forEach(l=>{if(!o.kalemler.some(k=>k.u===l.u))o.kalemler.push({u:l.u,adet:l.adet,gelen:0})});
+  o.teslim=d.teslim;o.not=d.not.trim();
+  if(o.kalemler.every(k=>k.gelen>=k.adet))o.durum="Teslim alındı";
+  save();openOrder(o.id);
+}
+function receiveOrder(id){
+  const o=S.orders.find(x=>x.id===id);if(!o||o.durum!=="Bekliyor")return;
+  const vals=o.kalemler.map((k,i)=>Number(document.getElementById("g_"+i).value)||0);
+  if(vals.some(v=>v<0||!Number.isInteger(v)))return alert("Gelen adet 0 veya daha büyük bir tam sayı olmalı.");
+  const kapat=document.getElementById("kapat").checked,top=vals.reduce((a,b)=>a+b,0);
+  if(!top&&!kapat)return alert("Gelen adetlerden en az biri 1 olmalı. Hiçbiri gelmediyse siparişi bekletin ya da kapatın.");
+  o.kalemler.forEach((k,i)=>{if(vals[i]>0){k.gelen+=vals[i];addMov(k.u,"Ürün Girişi",vals[i],"Sipariş "+o.no+(o.not?" · "+o.not:""),o.no,todayStr(),S.user)}});
+  if(kapat||o.kalemler.every(k=>k.gelen>=k.adet))o.durum="Teslim alındı";
+  save();render();
+}
+function cancelOrder(id){const o=S.orders.find(x=>x.id===id);if(!o||o.durum!=="Bekliyor")return;
+  if(o.kalemler.some(k=>k.gelen>0))return alert("Bu siparişten mal teslim alınmış. İptal yerine siparişi kapatın.");
+  if(!confirm("Sipariş iptal edilsin mi?"))return;o.durum="İptal";save();render()}
 
 function returnModal(no){
   const s=S.sales.find(x=>x.no===no);if(!s||s.iptal)return;
@@ -420,10 +530,10 @@ function copyText(no){const t=shareText(no);
 function fallbackCopy(t,done){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(e){prompt("Kopyalamak için Ctrl+C",t)}a.remove()}
 
 function detail(id){
-  const p=prod(id),s=stok(id),ls=lastSales(id),h=S.mov.filter(m=>m.u===id).reverse();
+  const p=prod(id),s=stok(id),ls=lastSales(id),h=S.mov.filter(m=>m.u===id).reverse(),ou=ordUnits(id);
   modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(p.ad)}</h2><button class="btn s sm" onclick="closeModal()">Kapat</button></div>
   <div class="muted">${esc(p.kod)} · ${esc(p.kat)} · ${esc(p.marka)} · Raf ${esc(p.raf)}</div>
-  <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Stok</div><div class="v ${s<=p.min?"neg":""}">${s}</div></div><div class="card"><div class="l">Liste Fiyatı</div><div class="v">${money(p.fiyat)}</div></div><div class="card"><div class="l">Alt Sınır</div><div class="v">${p.min}</div></div></div>
+  <div class="cards" style="margin-top:12px"><div class="card"><div class="l">Stok</div><div class="v ${s<=p.min?"neg":""}">${s}</div></div><div class="card"><div class="l">Liste Fiyatı</div><div class="v">${money(p.fiyat)}</div></div>${ou?`<div class="card"><div class="l">Siparişte</div><div class="v">${ou.adet}</div><div class="muted">Tahmini ${fd(ou.teslim)}</div></div>`:""}<div class="card"><div class="l">Alt Sınır</div><div class="v">${p.min}</div></div></div>
   <h2 style="margin-top:14px">Son Satışlar</h2>${ls.length?`<div class="tw"><table><tr><th>Tarih</th><th>Müşteri</th><th class="n">Adet</th><th class="n">Birim Fiyat</th><th>Fiş</th></tr>${ls.map(x=>`<tr><td>${fd(x.tarih)}</td><td>${esc(x.musteri)}</td><td class="n">${x.adet}</td><td class="n">${money(x.fiyat)}</td><td>${x.no}</td></tr>`).join("")}</table></div>`:'<div class="muted" style="margin-bottom:12px">Bu ürün henüz satılmadı.</div>'}
   <h2>Ürün Geçmişi</h2><div class="tw"><table><tr><th>Tarih</th><th>Hareket</th><th class="n">Adet</th><th>Kime / Nereden</th><th>Fiş</th><th>Kaydeden</th></tr>
   ${h.map(m=>`<tr><td>${fd(m.tarih)}</td><td>${esc(m.tip)}</td><td class="n ${m.adet>0?"pos":"neg"}">${m.adet>0?"+":""}${m.adet}</td><td>${esc(m.kim)}</td><td>${esc(m.belge||"-")}</td><td>${esc(m.kul)}</td></tr>`).join("")}</table></div>`);
